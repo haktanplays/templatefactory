@@ -1,0 +1,10 @@
+.env
+__pycache__/
+*.pyc
+products/
+run_history.json
+template_machine.log
+.vscode/
+*.egg-info/
+dist/
+build/
