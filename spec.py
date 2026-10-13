@@ -26,6 +26,8 @@ KPI_AGGS = {"sum", "avg", "count", "max", "min", "sumif"}
 CHART_TYPES = {"bar", "pie", "line"}
 PDF_PAGE_TYPES = {"cover", "table", "checklist", "weekly_grid", "habit_tracker", "boxes", "notes"}
 OPTION_COLOR_KEYS = {"success", "warning", "danger", "info"}
+RESERVED_SHEET_NAMES = {"dashboard", "start here"}
+DROPDOWN_FORMULA_LIMIT = 255   # Excel: liste doğrulaması 255 karakteri aşarsa dosya "onarım" hatası verir
 
 
 class SpecError(ValueError):
@@ -82,7 +84,7 @@ def validate_spec(spec):
         name = str(_req(sh, "name", where))
         # Excel sayfa adı kuralları: 31 karakter, \ / ? * [ ] : yok
         name = re.sub(r'[\\/?*\[\]:]', '-', name).strip()[:31] or f"Sheet{si+1}"
-        if name.lower() in seen_names:
+        if name.lower() in seen_names or name.lower() in RESERVED_SHEET_NAMES:
             name = f"{name[:28]} {si+1}"
         seen_names.add(name.lower())
         sh["name"] = name
@@ -106,10 +108,18 @@ def validate_spec(spec):
             if ctype not in COLUMN_TYPES:
                 col["type"] = "text"
             if col.get("type") == "dropdown":
-                opts = [str(o) for o in col.get("options", []) if str(o).strip()]
+                opts = []
+                for o in col.get("options", []):
+                    o = str(o).replace(",", " /").replace('"', "").strip()
+                    if o and o not in opts:
+                        opts.append(o)
+                while opts and len(",".join(opts)) + 2 > DROPDOWN_FORMULA_LIMIT:
+                    opts.pop()
                 if not opts:
                     col["type"] = "text"
                 col["options"] = opts
+                oc = col.get("option_colors") or {}
+                col["option_colors"] = {k.replace(",", " /"): v for k, v in oc.items()}
             if col.get("total") not in TOTAL_AGGS:
                 col.pop("total", None)
             if col.get("conditional") not in CONDITIONALS:
@@ -120,11 +130,18 @@ def validate_spec(spec):
             raise SpecError(f"{where}: kolon adları tekrar ediyor")
 
         # formül kolonları: {Kolon Adı} yer tutucuları gerçek kolonlara işaret etmeli
+        col_types = {c["name"]: ("number" if c.get("formula") else c["type"]) for c in cols}
         for col in cols:
             if col.get("formula"):
-                for ref in re.findall(r"\{([^}]+)\}", col["formula"]):
+                f = col["formula"]
+                for ref in re.findall(r"\{([^}]+)\}", f):
                     if ref not in col_names:
                         raise SpecError(f"{where}: formül bilinmeyen kolona başvuruyor: {ref}")
+                    # metin/dropdown kolonu aritmetiğe giremez; sadece IF(...="...") karşılaştırmasında kullanılabilir
+                    if col_types[ref] in ("text", "dropdown", "date") and not re.search(r"\{" + re.escape(ref) + r"\}\s*(=|<>)", f):
+                        raise SpecError(f"{where}: formül sayısal olmayan kolonla hesap yapıyor: {ref}")
+                if col["type"] not in ("currency", "number", "percent"):
+                    col["type"] = "number"
 
         # örnek satırlar: formül kolonları hariç kolon sayısı kadar değer
         data_cols = [c for c in cols if not c.get("formula")]
@@ -135,8 +152,18 @@ def validate_spec(spec):
                 continue
             row = list(row)[:len(data_cols)]
             row += [""] * (len(data_cols) - len(row))
+            for i, c in enumerate(data_cols):
+                row[i] = _coerce_value(c, row[i])
             fixed.append(row)
         sh["rows"] = fixed
+        # yüzde kolonu: değerlerin çoğu 1'den büyükse 0-100 ölçeğinde yazılmış demektir
+        for i, c in enumerate(data_cols):
+            if c["type"] == "percent":
+                nums = [r[i] for r in fixed if isinstance(r[i], (int, float))]
+                if nums and sum(1 for v in nums if v > 1) > len(nums) / 2:
+                    for r in fixed:
+                        if isinstance(r[i], (int, float)):
+                            r[i] = r[i] / 100
 
         chart = sh.get("chart")
         if chart and not _valid_chart(chart, col_names):
@@ -174,6 +201,29 @@ def validate_spec(spec):
     listing.setdefault("description", spec.get("tagline", ""))
     listing["tags"] = [str(t)[:20] for t in listing.get("tags", [])][:13]
     return spec
+
+
+def _coerce_value(col, value):
+    """Örnek hücre değerini kolon tipine uydurur; uymayan sayısal değer boş kalır (SUM'ı bozmasın)."""
+    if value is None or value == "":
+        return ""
+    t = col["type"]
+    if t in ("currency", "number", "percent"):
+        if isinstance(value, bool):
+            return ""
+        if isinstance(value, (int, float)):
+            return value
+        try:
+            return float(str(value).replace(",", "").replace("$", "").replace("%", "").strip())
+        except ValueError:
+            return ""
+    if t == "date":
+        m = re.match(r"\d{4}-\d{2}-\d{2}", str(value))
+        return m.group(0) if m else ""
+    if t == "dropdown":
+        v = str(value).strip()
+        return v if v in col["options"] else ""
+    return str(value)
 
 
 def _valid_chart(chart, col_names):
