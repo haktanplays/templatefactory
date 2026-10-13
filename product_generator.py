@@ -63,7 +63,7 @@ Create a complete template concept. Respond ONLY in valid JSON (no markdown, no 
                 max_tokens=2000,
                 messages=[{"role": "user", "content": prompt}]
             )
-            text = msg.content[0].text.strip()
+            text = next(b.text for b in msg.content if b.type == "text").strip()
             text = text.replace("```json", "").replace("```", "").strip()
             concept = json.loads(text)
             logger.info(f"✅ Konsept üretildi: {concept.get('product_name', keyword)}")
@@ -205,7 +205,9 @@ def generate_excel(keyword, concept, config):
 
     for si, sheet_cfg in enumerate(sheets_config):
         ws = wb.active if si == 0 else wb.create_sheet()
-        ws.title = sheet_cfg.get("name", f"Sheet{si+1}")
+        raw_title = sheet_cfg.get("name", f"Sheet{si+1}")
+        # Excel sheet names: max 31 chars, no \ / ? * [ ] :
+        ws.title = re.sub(r'[\\/?*\[\]:]', '-', str(raw_title))[:31] or f"Sheet{si+1}"
         columns = sheet_cfg.get("columns", ["A", "B", "C", "D"])
         num_cols = len(columns)
         sample_rows = sheet_cfg.get("sample_rows", 8)
@@ -214,7 +216,7 @@ def generate_excel(keyword, concept, config):
         title_text = concept.get("product_name", keyword.title()) if si == 0 else sheet_cfg.get("name", "")
         subtitle_text = concept.get("tagline", "") if si == 0 else sheet_cfg.get("purpose", "")
         merge_end = get_column_letter(num_cols + 1)
-        ds.style_dashboard_title(ws, title_text, subtitle_text, f"A1:{merge_end}2", row=1)
+        ds.style_dashboard_title(ws, title_text, subtitle_text, f"A1:{merge_end}1", row=1)
 
         # Spacer row
         ws.row_dimensions[3].height = 6
