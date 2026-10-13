@@ -9,6 +9,17 @@ from datetime import datetime
 logger = logging.getLogger("template-machine.etsy-export")
 
 
+def _etsy_title(base, suffix, limit=140):
+    """Etsy başlık sınırı 140 karakter: ek kelimeleri koruyup ana başlığı kırpar."""
+    room = limit - len(suffix) - 2
+    if len(base) > room:
+        cut = base[:room]
+        # tercihen son virgülde, yoksa son boşlukta kes
+        base = cut.rsplit(",", 1)[0] if "," in cut else cut.rsplit(" ", 1)[0]
+        base = base.rstrip(",;:- ")
+    return f"{base}, {suffix}"
+
+
 def export_single(product_data, config, writer):
     """Tek bir ürün setini CSV satırlarına yazar."""
     listing = product_data.get("listing", {})
@@ -57,7 +68,7 @@ INSTANT DOWNLOAD - No physical item will be shipped.
 © {datetime.now().year} {brand}"""
 
         writer.writerow({
-            "title": f"{base_title} Excel Spreadsheet Digital Download",
+            "title": _etsy_title(base_title, "Excel Spreadsheet Digital Download"),
             "description": excel_desc,
             "price": f"{pricing.get('excel', 14.99):.2f}",
             "currency": "USD",
@@ -81,7 +92,7 @@ INSTANT DOWNLOAD - No physical item will be shipped.
 WHAT YOU GET:
 - 1x Printable PDF Planner (A4 size)
 - Cover page with table of contents
-- {len(concept.get('pdf', {}).get('sections', []))} organized sections
+- {len(concept.get('pdf', {}).get('pages', []))} ready-to-print pages
 - Notes pages for extra planning
 - Clean, professional design
 
@@ -96,7 +107,7 @@ INSTANT DOWNLOAD - No physical item will be shipped.
 © {datetime.now().year} {brand}"""
 
         writer.writerow({
-            "title": f"{base_title} Printable Planner PDF Digital Download",
+            "title": _etsy_title(base_title, "Printable Planner PDF Digital Download"),
             "description": pdf_desc,
             "price": f"{pricing.get('pdf', 4.99):.2f}",
             "currency": "USD",
@@ -135,7 +146,7 @@ INSTANT DOWNLOAD - No physical item will be shipped.
 © {datetime.now().year} {brand}"""
 
         writer.writerow({
-            "title": f"{base_title} Bundle Excel + PDF Planner Digital Download",
+            "title": _etsy_title(base_title, "Bundle Excel + PDF Planner Digital Download"),
             "description": bundle_desc,
             "price": f"{pricing.get('bundle', 13.99):.2f}",
             "currency": "USD",

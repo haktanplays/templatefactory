@@ -1,0 +1,175 @@
+{
+  "category": "wedding",
+  "theme": "sunset",
+  "product_name": "Wedding Planner & Budget Tracker",
+  "tagline": "Budget, vendors, guest list and timeline in one organised workbook",
+  "target_audience": "Engaged couples planning their own wedding without a professional planner",
+  "instructions": [
+    "Begin on 'Wedding Budget': enter your estimate for each category, then update Actual and Deposit Paid as you book vendors. Balance Due calculates itself.",
+    "Keep every supplier on 'Vendor Contacts' so phone numbers, emails and contract status are never lost.",
+    "Manage invitations on 'Guest List'. The RSVP dropdown colours each row and the attending count feeds the Dashboard.",
+    "Work through 'Timeline & Checklist' month by month. Mark tasks Done to see your progress.",
+    "The 'Dashboard' shows total budget, amount paid, balance due and confirmed guests at a glance. Works in Excel 2016+ and Google Sheets."
+  ],
+  "excel": {
+    "currency_symbol": "$",
+    "sheets": [
+      {
+        "name": "Wedding Budget",
+        "purpose": "Estimate, track payments and see what is still owed per category",
+        "columns": [
+          {"name": "Category", "type": "text", "width": 22},
+          {"name": "Estimated", "type": "currency", "total": "sum"},
+          {"name": "Actual", "type": "currency", "total": "sum"},
+          {"name": "Deposit Paid", "type": "currency", "total": "sum"},
+          {"name": "Balance Due", "type": "currency", "formula": "={Actual}-{Deposit Paid}", "total": "sum", "conditional": "data_bar"},
+          {"name": "Due Date", "type": "date"},
+          {"name": "Status", "type": "dropdown", "options": ["Not Booked", "Booked", "Paid in Full"], "option_colors": {"Not Booked": "danger", "Booked": "warning", "Paid in Full": "success"}},
+          {"name": "Notes", "type": "text", "width": 28}
+        ],
+        "rows": [
+          ["Venue", 8000, 8500, 3000, "2026-08-15", "Booked", "Includes tables and chairs"],
+          ["Catering", 6500, 6200, 1500, "2026-09-01", "Booked", "120 guests, plated dinner"],
+          ["Photography", 3200, 3200, 3200, "2026-07-01", "Paid in Full", "8 hours + engagement shoot"],
+          ["Videography", 1800, 0, 0, "2026-07-01", "Not Booked", "Comparing two quotes"],
+          ["Flowers & Decor", 2500, 2650, 500, "2026-09-10", "Booked", "Bouquets, centrepieces, arch"],
+          ["Music / DJ", 1500, 1400, 400, "2026-09-05", "Booked", "6 hours, includes ceremony audio"],
+          ["Wedding Dress", 2000, 2150, 2150, "2026-06-20", "Paid in Full", "Alterations included"],
+          ["Suit & Accessories", 800, 0, 0, "2026-07-15", "Not Booked", ""],
+          ["Invitations & Stationery", 500, 480, 480, "2026-05-30", "Paid in Full", "Printed + digital"],
+          ["Cake", 600, 0, 0, "2026-08-30", "Not Booked", "Tasting booked"],
+          ["Rings", 2200, 2200, 2200, "2026-04-10", "Paid in Full", ""],
+          ["Hair & Makeup", 650, 650, 150, "2026-09-12", "Booked", "Trial in August"],
+          ["Transportation", 500, 0, 0, "2026-09-01", "Not Booked", ""],
+          ["Officiant", 400, 400, 100, "2026-08-01", "Booked", ""],
+          ["Favors & Gifts", 450, 0, 0, "2026-08-20", "Not Booked", ""]
+        ],
+        "blank_rows": 8,
+        "chart": {"type": "bar", "title": "Estimated vs Actual Cost", "category_col": "Category", "value_cols": ["Estimated", "Actual"]}
+      },
+      {
+        "name": "Vendor Contacts",
+        "purpose": "Every supplier, contact and contract in one list",
+        "columns": [
+          {"name": "Vendor", "type": "text", "width": 24},
+          {"name": "Service", "type": "dropdown", "options": ["Venue", "Catering", "Photography", "Videography", "Florist", "Music / DJ", "Cake", "Hair & Makeup", "Transportation", "Officiant", "Other"], "width": 16},
+          {"name": "Contact Name", "type": "text", "width": 18},
+          {"name": "Phone", "type": "text", "width": 16},
+          {"name": "Email", "type": "text", "width": 26},
+          {"name": "Contract Signed", "type": "dropdown", "options": ["Yes", "No"], "option_colors": {"Yes": "success", "No": "danger"}},
+          {"name": "Notes", "type": "text", "width": 26}
+        ],
+        "rows": [
+          ["The Orchard House", "Venue", "Maria Lopez", "555-0142", "events@orchardhouse.example", "Yes", "Rain plan: indoor barn"],
+          ["Bella Cucina Catering", "Catering", "Tom Reed", "555-0188", "tom@bellacucina.example", "Yes", "Final headcount due Aug 15"],
+          ["Lumen Studio", "Photography", "Priya Shah", "555-0123", "hello@lumenstudio.example", "Yes", ""],
+          ["Wildstem Florals", "Florist", "Anna Berg", "555-0167", "anna@wildstem.example", "Yes", "Seasonal blooms only"],
+          ["DJ Marcus", "Music / DJ", "Marcus Hill", "555-0199", "bookings@djmarcus.example", "Yes", "Send playlist by Sept 1"],
+          ["Sweet Layer Bakery", "Cake", "Jo Kim", "555-0110", "orders@sweetlayer.example", "No", "Tasting July 12"],
+          ["Glow Beauty Collective", "Hair & Makeup", "Dana Cruz", "555-0176", "dana@glowbeauty.example", "Yes", "Trial Aug 20"],
+          ["Rev. Sarah Miles", "Officiant", "Sarah Miles", "555-0155", "sarah@example.com", "No", "Draft ceremony script"]
+        ],
+        "blank_rows": 10
+      },
+      {
+        "name": "Guest List",
+        "purpose": "Invitations, RSVPs, meal choices and table plan",
+        "columns": [
+          {"name": "Guest Name", "type": "text", "width": 24},
+          {"name": "Group", "type": "dropdown", "options": ["Partner A Family", "Partner B Family", "Friends", "Coworkers", "Wedding Party"], "width": 18},
+          {"name": "Invited", "type": "number", "total": "sum"},
+          {"name": "RSVP", "type": "dropdown", "options": ["Pending", "Attending", "Declined"], "option_colors": {"Pending": "warning", "Attending": "success", "Declined": "danger"}},
+          {"name": "Attending", "type": "number", "total": "sum"},
+          {"name": "Meal Choice", "type": "dropdown", "options": ["Chicken", "Fish", "Vegetarian", "Kids Meal"]},
+          {"name": "Table", "type": "number"},
+          {"name": "Address", "type": "text", "width": 30}
+        ],
+        "rows": [
+          ["James & Olivia Carter", "Partner A Family", 2, "Attending", 2, "Chicken", 1, "12 Maple Ave, Springfield"],
+          ["Grandma Rose Carter", "Partner A Family", 1, "Attending", 1, "Fish", 1, "12 Maple Ave, Springfield"],
+          ["Daniel Okafor", "Partner B Family", 1, "Attending", 1, "Chicken", 2, "8 Hillside Rd, Riverton"],
+          ["Amara & Kofi Okafor", "Partner B Family", 2, "Pending", 0, "", 2, "41 Lake St, Riverton"],
+          ["Sophie Laurent", "Wedding Party", 1, "Attending", 1, "Vegetarian", 3, "3 Rue Verte, Montreal"],
+          ["Ben Walker", "Wedding Party", 1, "Attending", 1, "Chicken", 3, "77 King St, Toronto"],
+          ["Chloe & Ryan Mills", "Friends", 2, "Attending", 2, "Fish", 4, "19 Elm Court, Boston"],
+          ["Hannah Price", "Friends", 1, "Declined", 0, "", 0, "5 Bay View, Portland"],
+          ["Lucas Fernandez", "Friends", 1, "Pending", 0, "", 4, "22 Sunset Blvd, Austin"],
+          ["Emily & Noah Brooks", "Friends", 2, "Attending", 2, "Vegetarian", 5, "9 Birch Lane, Denver"],
+          ["Priya Nair", "Coworkers", 1, "Attending", 1, "Chicken", 6, "14 Market St, Seattle"],
+          ["Michael Chen", "Coworkers", 1, "Pending", 0, "", 6, "30 Harbor Dr, Seattle"],
+          ["The Johnson Family", "Friends", 4, "Attending", 4, "Kids Meal", 7, "61 Oak Ridge, Chicago"],
+          ["Aunt Linda Carter", "Partner A Family", 1, "Declined", 0, "", 0, "88 River Rd, Springfield"],
+          ["Grace Adeyemi", "Wedding Party", 1, "Attending", 1, "Fish", 3, "2 Park Place, London"]
+        ],
+        "blank_rows": 20
+      },
+      {
+        "name": "Timeline & Checklist",
+        "purpose": "Everything to do, from engagement to the big day",
+        "columns": [
+          {"name": "Task", "type": "text", "width": 36},
+          {"name": "Timeframe", "type": "dropdown", "options": ["12+ Months", "9-12 Months", "6-9 Months", "3-6 Months", "1-3 Months", "Final Month", "Wedding Week"], "width": 16},
+          {"name": "Due Date", "type": "date"},
+          {"name": "Owner", "type": "dropdown", "options": ["Partner A", "Partner B", "Both", "Planner", "Family"]},
+          {"name": "Done", "type": "dropdown", "options": ["Yes", "No"], "option_colors": {"Yes": "success", "No": "warning"}},
+          {"name": "Notes", "type": "text", "width": 28}
+        ],
+        "rows": [
+          ["Set the overall budget", "12+ Months", "2025-09-15", "Both", "Yes", ""],
+          ["Draft the guest list", "12+ Months", "2025-09-30", "Both", "Yes", "~120 guests"],
+          ["Book the venue", "12+ Months", "2025-10-15", "Both", "Yes", "Orchard House"],
+          ["Book photographer", "9-12 Months", "2025-12-01", "Partner A", "Yes", ""],
+          ["Book caterer", "9-12 Months", "2025-12-15", "Partner B", "Yes", ""],
+          ["Choose wedding party", "9-12 Months", "2025-12-20", "Both", "Yes", ""],
+          ["Order wedding dress", "6-9 Months", "2026-01-20", "Partner A", "Yes", "Alterations in July"],
+          ["Book florist and DJ", "6-9 Months", "2026-02-10", "Both", "Yes", ""],
+          ["Send save-the-dates", "6-9 Months", "2026-02-28", "Both", "Yes", ""],
+          ["Book hair & makeup trial", "3-6 Months", "2026-05-01", "Partner A", "No", ""],
+          ["Order invitations", "3-6 Months", "2026-05-15", "Both", "No", ""],
+          ["Finalise menu with caterer", "3-6 Months", "2026-06-01", "Partner B", "No", ""],
+          ["Mail invitations", "1-3 Months", "2026-06-20", "Both", "No", "RSVP by Aug 10"],
+          ["Confirm final headcount", "Final Month", "2026-08-15", "Both", "No", ""],
+          ["Create seating chart", "Final Month", "2026-08-25", "Both", "No", ""],
+          ["Pack emergency kit", "Wedding Week", "2026-09-10", "Partner A", "No", ""],
+          ["Confirm all vendor arrival times", "Wedding Week", "2026-09-11", "Planner", "No", ""]
+        ],
+        "blank_rows": 12
+      }
+    ],
+    "dashboard": {
+      "kpis": [
+        {"label": "Total Budget", "sheet": "Wedding Budget", "column": "Estimated", "agg": "sum", "format": "currency"},
+        {"label": "Paid So Far", "sheet": "Wedding Budget", "column": "Deposit Paid", "agg": "sum", "format": "currency"},
+        {"label": "Balance Due", "sheet": "Wedding Budget", "column": "Balance Due", "agg": "sum", "format": "currency"},
+        {"label": "Guests Attending", "sheet": "Guest List", "column": "Attending", "agg": "sum", "format": "number"}
+      ],
+      "charts": [
+        {"type": "bar", "title": "Estimated vs Actual by Category", "sheet": "Wedding Budget", "category_col": "Category", "value_cols": ["Estimated", "Actual"]},
+        {"type": "pie", "title": "Where the Money Goes", "sheet": "Wedding Budget", "category_col": "Category", "value_cols": ["Actual"]}
+      ]
+    }
+  },
+  "pdf": {
+    "title": "Wedding Planner",
+    "pages": [
+      {"type": "cover"},
+      {"type": "checklist", "title": "Wedding Planning Checklist", "subtitle": "Tick each task as you go", "sections": {
+        "12+ months before": ["Set the budget", "Draft guest list", "Choose a date", "Book the venue", "Hire a planner (optional)"],
+        "6-9 months before": ["Book photographer & videographer", "Book caterer", "Order the dress / suit", "Book florist & music", "Send save-the-dates"],
+        "3-6 months before": ["Order invitations", "Plan the honeymoon", "Book hair & makeup", "Choose the cake", "Arrange transportation"],
+        "Final month": ["Mail invitations & collect RSVPs", "Confirm headcount with caterer", "Seating chart", "Confirm vendor arrival times", "Pack an emergency kit"]
+      }},
+      {"type": "table", "title": "Budget Tracker", "subtitle": "Estimate first, then record the real cost and what you have paid", "columns": ["Category", "Estimated", "Actual", "Paid", "Balance"], "col_widths": [2, 1, 1, 1, 1], "prefill": ["Venue", "Catering", "Photography", "Videography", "Flowers & Decor", "Music / DJ", "Attire", "Rings", "Invitations", "Cake", "Hair & Makeup", "Transportation", "Officiant", "Favors", "Other"], "rows": 18, "total_row": true},
+      {"type": "table", "title": "Vendor Contact Sheet", "columns": ["Vendor", "Service", "Contact", "Phone / Email", "Signed?"], "col_widths": [1.6, 1.1, 1.2, 1.8, 0.7], "rows": 18},
+      {"type": "table", "title": "Guest List", "columns": ["Name", "Invited", "RSVP", "Meal", "Table"], "col_widths": [2.6, 0.8, 1, 1, 0.7], "rows": 26},
+      {"type": "table", "title": "Wedding Day Timeline", "subtitle": "Hour by hour, who is where", "columns": ["Time", "What happens", "Who / Vendor", "Notes"], "col_widths": [0.8, 2.2, 1.4, 1.6], "rows": 20},
+      {"type": "boxes", "title": "Vows & Speech Notes", "boxes": ["Our story", "Promises", "Thank-yous", "Closing line"], "box_height": 42},
+      {"type": "notes", "title": "Notes & Ideas"}
+    ]
+  },
+  "listing": {
+    "title": "Wedding Planner Spreadsheet Excel, Wedding Budget Tracker, Guest List RSVP Template, Vendor Contacts & Checklist, Google Sheets, Printable PDF",
+    "description": "Plan your whole wedding from one workbook. The Excel spreadsheet (Google Sheets compatible) includes a wedding budget with estimated vs actual costs, deposits and automatic balance due, a vendor contact list with contract status, a guest list with RSVP, meal choice and table numbers, a month-by-month timeline checklist, and a dashboard with your total budget, amount paid, balance due and confirmed guests. The printable PDF planner adds a planning checklist, budget and vendor sheets, a guest list, a wedding-day timeline and vow notes for when you want to plan on paper.",
+    "tags": ["wedding planner", "wedding budget", "wedding spreadsheet", "guest list template", "wedding checklist", "rsvp tracker", "wedding excel", "wedding planning", "vendor tracker", "wedding timeline", "google sheets wedding", "printable wedding planner", "digital download"]
+  }
+}

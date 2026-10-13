@@ -230,7 +230,17 @@ class DesignSystem:
             cell.border = self.border_all
         ws.row_dimensions[row].height = 30
 
-    def style_kpi_card(self, ws, row, col, label, value_cell_ref, unit="", delta=None):
+    def status_style(self, key):
+        """Dropdown seçenek renkleri: success / warning / danger / info -> (fill, font)."""
+        if key == "success":
+            return self.fill_success_light, self.font_success
+        if key == "warning":
+            return self.fill_warning_light, Font(name="Aptos", size=10, bold=True, color=self.t["warning"])
+        if key == "danger":
+            return self.fill_danger_light, self.font_danger
+        return self.fill_bg_light, Font(name="Aptos", size=10, bold=True, color=self.t["primary"])
+
+    def style_kpi_card(self, ws, row, col, label, value_cell_ref, unit="", delta=None, number_format=None):
         label_cell = ws.cell(row=row, column=col)
         label_cell.value = label
         label_cell.font = self.font_kpi_label
@@ -241,6 +251,8 @@ class DesignSystem:
         val_cell = ws.cell(row=row + 1, column=col)
         val_cell.value = value_cell_ref if isinstance(value_cell_ref, str) and value_cell_ref.startswith("=") else value_cell_ref
         val_cell.font = self.font_kpi_value
+        if number_format:
+            val_cell.number_format = number_format
         val_cell.fill = self.fill_white
         val_cell.alignment = Alignment(horizontal="center", vertical="center")
         val_cell.border = self.border_light

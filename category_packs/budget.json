@@ -1,0 +1,740 @@
+{
+  "category": "budget",
+  "theme": "forest",
+  "product_name": "Monthly Budget Planner & Expense Tracker",
+  "tagline": "See where every dollar goes, hit your savings goals, and pay off debt faster",
+  "target_audience": "Individuals and families who want a simple, visual way to manage monthly money",
+  "instructions": [
+    "Start on the 'Monthly Budget' tab: replace the sample categories and amounts with your own. Income rows stay at the top.",
+    "Log purchases on the 'Expense Log' tab as they happen. The Category dropdown keeps your data consistent.",
+    "Track savings targets on 'Savings Goals' and debts on 'Debt Tracker'. Progress bars and status colours update automatically.",
+    "Open the 'Dashboard' tab any time for your totals and the budget-vs-actual chart. Everything is formula driven, nothing to calculate by hand.",
+    "Works in Microsoft Excel (2016+) and Google Sheets (File > Import). Sample data is only there to show you how it works, overwrite it freely."
+  ],
+  "excel": {
+    "currency_symbol": "$",
+    "sheets": [
+      {
+        "name": "Monthly Budget",
+        "purpose": "Plan income, expenses and savings for the month and compare against actuals",
+        "columns": [
+          {
+            "name": "Category",
+            "type": "text",
+            "width": 26
+          },
+          {
+            "name": "Type",
+            "type": "dropdown",
+            "options": [
+              "Income",
+              "Fixed Expense",
+              "Variable Expense",
+              "Savings"
+            ],
+            "width": 18
+          },
+          {
+            "name": "Budgeted",
+            "type": "currency",
+            "total": "sum"
+          },
+          {
+            "name": "Actual",
+            "type": "currency",
+            "total": "sum"
+          },
+          {
+            "name": "Difference",
+            "type": "currency",
+            "formula": "=IF({Type}=\"Income\",{Actual}-{Budgeted},{Budgeted}-{Actual})",
+            "total": "sum",
+            "conditional": "negative_red"
+          },
+          {
+            "name": "Notes",
+            "type": "text",
+            "width": 30
+          }
+        ],
+        "rows": [
+          [
+            "Salary",
+            "Income",
+            4800,
+            4800,
+            "After tax, paid on the 1st"
+          ],
+          [
+            "Freelance Work",
+            "Income",
+            600,
+            850,
+            "Two design projects this month"
+          ],
+          [
+            "Rent",
+            "Fixed Expense",
+            1650,
+            1650,
+            "Due on the 1st"
+          ],
+          [
+            "Utilities",
+            "Fixed Expense",
+            180,
+            204.5,
+            "Higher heating bill"
+          ],
+          [
+            "Phone & Internet",
+            "Fixed Expense",
+            95,
+            95,
+            ""
+          ],
+          [
+            "Insurance",
+            "Fixed Expense",
+            210,
+            210,
+            "Car + renters"
+          ],
+          [
+            "Groceries",
+            "Variable Expense",
+            550,
+            612.3,
+            "Hosted dinner twice"
+          ],
+          [
+            "Transportation",
+            "Variable Expense",
+            160,
+            142.8,
+            "Fuel + transit pass"
+          ],
+          [
+            "Dining Out",
+            "Variable Expense",
+            200,
+            268.4,
+            "Cut back next month"
+          ],
+          [
+            "Entertainment",
+            "Variable Expense",
+            120,
+            89.99,
+            "Concert tickets"
+          ],
+          [
+            "Subscriptions",
+            "Variable Expense",
+            45,
+            45,
+            "Streaming, cloud storage"
+          ],
+          [
+            "Emergency Fund",
+            "Savings",
+            400,
+            400,
+            "Target: 6 months of expenses"
+          ],
+          [
+            "Retirement",
+            "Savings",
+            350,
+            350,
+            "Automatic transfer"
+          ],
+          [
+            "Vacation Fund",
+            "Savings",
+            150,
+            150,
+            "Summer trip"
+          ]
+        ],
+        "blank_rows": 8,
+        "chart": {
+          "type": "bar",
+          "title": "Budgeted vs Actual by Category",
+          "category_col": "Category",
+          "value_cols": [
+            "Budgeted",
+            "Actual"
+          ]
+        }
+      },
+      {
+        "name": "Expense Log",
+        "purpose": "Record every purchase as it happens",
+        "columns": [
+          {
+            "name": "Date",
+            "type": "date"
+          },
+          {
+            "name": "Description",
+            "type": "text",
+            "width": 30
+          },
+          {
+            "name": "Category",
+            "type": "dropdown",
+            "options": [
+              "Groceries",
+              "Rent",
+              "Utilities",
+              "Transportation",
+              "Dining Out",
+              "Entertainment",
+              "Subscriptions",
+              "Health",
+              "Shopping",
+              "Other"
+            ],
+            "width": 18
+          },
+          {
+            "name": "Amount",
+            "type": "currency",
+            "total": "sum",
+            "conditional": "data_bar"
+          },
+          {
+            "name": "Payment Method",
+            "type": "dropdown",
+            "options": [
+              "Debit Card",
+              "Credit Card",
+              "Cash",
+              "Bank Transfer"
+            ],
+            "width": 18
+          },
+          {
+            "name": "Notes",
+            "type": "text",
+            "width": 26
+          }
+        ],
+        "rows": [
+          [
+            "2026-03-01",
+            "Rent payment",
+            "Rent",
+            1650,
+            "Bank Transfer",
+            ""
+          ],
+          [
+            "2026-03-02",
+            "Weekly groceries",
+            "Groceries",
+            128.45,
+            "Debit Card",
+            "Farmers market + supermarket"
+          ],
+          [
+            "2026-03-03",
+            "Fuel",
+            "Transportation",
+            52.1,
+            "Credit Card",
+            ""
+          ],
+          [
+            "2026-03-04",
+            "Streaming subscription",
+            "Subscriptions",
+            15.99,
+            "Credit Card",
+            "Monthly"
+          ],
+          [
+            "2026-03-06",
+            "Dinner with friends",
+            "Dining Out",
+            64.2,
+            "Credit Card",
+            ""
+          ],
+          [
+            "2026-03-08",
+            "Electricity bill",
+            "Utilities",
+            112.3,
+            "Bank Transfer",
+            ""
+          ],
+          [
+            "2026-03-09",
+            "Weekly groceries",
+            "Groceries",
+            141.9,
+            "Debit Card",
+            ""
+          ],
+          [
+            "2026-03-11",
+            "Pharmacy",
+            "Health",
+            23.75,
+            "Cash",
+            ""
+          ],
+          [
+            "2026-03-13",
+            "Concert tickets",
+            "Entertainment",
+            89.99,
+            "Credit Card",
+            "Two tickets"
+          ],
+          [
+            "2026-03-15",
+            "Coffee shop",
+            "Dining Out",
+            11.5,
+            "Cash",
+            ""
+          ],
+          [
+            "2026-03-16",
+            "Weekly groceries",
+            "Groceries",
+            119.6,
+            "Debit Card",
+            ""
+          ],
+          [
+            "2026-03-18",
+            "Transit pass",
+            "Transportation",
+            90.7,
+            "Debit Card",
+            "Monthly pass"
+          ],
+          [
+            "2026-03-20",
+            "Internet bill",
+            "Utilities",
+            92.2,
+            "Bank Transfer",
+            ""
+          ],
+          [
+            "2026-03-23",
+            "Weekly groceries",
+            "Groceries",
+            134.1,
+            "Debit Card",
+            ""
+          ],
+          [
+            "2026-03-27",
+            "New running shoes",
+            "Shopping",
+            118,
+            "Credit Card",
+            "On sale"
+          ]
+        ],
+        "blank_rows": 15
+      },
+      {
+        "name": "Savings Goals",
+        "purpose": "Track progress towards each savings target",
+        "columns": [
+          {
+            "name": "Goal",
+            "type": "text",
+            "width": 26
+          },
+          {
+            "name": "Target Amount",
+            "type": "currency",
+            "total": "sum"
+          },
+          {
+            "name": "Saved So Far",
+            "type": "currency",
+            "total": "sum"
+          },
+          {
+            "name": "Remaining",
+            "type": "currency",
+            "formula": "={Target Amount}-{Saved So Far}",
+            "total": "sum"
+          },
+          {
+            "name": "Progress",
+            "type": "percent",
+            "formula": "=IF({Target Amount}=0,0,{Saved So Far}/{Target Amount})",
+            "conditional": "progress_bar"
+          },
+          {
+            "name": "Target Date",
+            "type": "date"
+          },
+          {
+            "name": "Status",
+            "type": "dropdown",
+            "options": [
+              "On Track",
+              "Behind",
+              "Completed"
+            ],
+            "option_colors": {
+              "On Track": "success",
+              "Behind": "danger",
+              "Completed": "info"
+            }
+          }
+        ],
+        "rows": [
+          [
+            "Emergency Fund",
+            12000,
+            7400,
+            "2026-12-31",
+            "On Track"
+          ],
+          [
+            "Summer Vacation",
+            2500,
+            1350,
+            "2026-06-15",
+            "On Track"
+          ],
+          [
+            "New Laptop",
+            1800,
+            1800,
+            "2026-02-28",
+            "Completed"
+          ],
+          [
+            "Car Down Payment",
+            6000,
+            2100,
+            "2026-10-01",
+            "Behind"
+          ],
+          [
+            "Holiday Gifts",
+            800,
+            250,
+            "2026-11-30",
+            "On Track"
+          ],
+          [
+            "Home Repairs",
+            3000,
+            900,
+            "2026-09-01",
+            "Behind"
+          ]
+        ],
+        "blank_rows": 6
+      },
+      {
+        "name": "Debt Tracker",
+        "purpose": "Keep every balance, rate and due date in one place",
+        "columns": [
+          {
+            "name": "Creditor",
+            "type": "text",
+            "width": 24
+          },
+          {
+            "name": "Type",
+            "type": "dropdown",
+            "options": [
+              "Credit Card",
+              "Student Loan",
+              "Car Loan",
+              "Mortgage",
+              "Personal Loan",
+              "Other"
+            ],
+            "width": 16
+          },
+          {
+            "name": "Balance",
+            "type": "currency",
+            "total": "sum",
+            "conditional": "data_bar"
+          },
+          {
+            "name": "Interest Rate",
+            "type": "percent"
+          },
+          {
+            "name": "Min Payment",
+            "type": "currency",
+            "total": "sum"
+          },
+          {
+            "name": "Due Day",
+            "type": "number"
+          },
+          {
+            "name": "Status",
+            "type": "dropdown",
+            "options": [
+              "Current",
+              "Late",
+              "Paid Off"
+            ],
+            "option_colors": {
+              "Current": "success",
+              "Late": "danger",
+              "Paid Off": "info"
+            }
+          }
+        ],
+        "rows": [
+          [
+            "Visa Card",
+            "Credit Card",
+            2340.5,
+            0.199,
+            75,
+            15,
+            "Current"
+          ],
+          [
+            "Federal Student Loan",
+            "Student Loan",
+            14200,
+            0.055,
+            185,
+            20,
+            "Current"
+          ],
+          [
+            "Auto Loan",
+            "Car Loan",
+            8650,
+            0.064,
+            310,
+            5,
+            "Current"
+          ],
+          [
+            "Store Card",
+            "Credit Card",
+            0,
+            0.249,
+            0,
+            28,
+            "Paid Off"
+          ],
+          [
+            "Personal Loan",
+            "Personal Loan",
+            1900,
+            0.089,
+            120,
+            10,
+            "Late"
+          ]
+        ],
+        "blank_rows": 6
+      }
+    ],
+    "dashboard": {
+      "kpis": [
+        {
+          "label": "Total Income",
+          "sheet": "Monthly Budget",
+          "column": "Actual",
+          "agg": "sumif",
+          "where_column": "Type",
+          "equals": "Income",
+          "format": "currency"
+        },
+        {
+          "label": "Total Spent",
+          "sheet": "Expense Log",
+          "column": "Amount",
+          "agg": "sum",
+          "format": "currency"
+        },
+        {
+          "label": "Total Saved",
+          "sheet": "Savings Goals",
+          "column": "Saved So Far",
+          "agg": "sum",
+          "format": "currency"
+        },
+        {
+          "label": "Total Debt",
+          "sheet": "Debt Tracker",
+          "column": "Balance",
+          "agg": "sum",
+          "format": "currency"
+        }
+      ],
+      "charts": [
+        {
+          "type": "bar",
+          "title": "Budgeted vs Actual",
+          "sheet": "Monthly Budget",
+          "category_col": "Category",
+          "value_cols": [
+            "Budgeted",
+            "Actual"
+          ]
+        },
+        {
+          "type": "pie",
+          "title": "Savings Progress",
+          "sheet": "Savings Goals",
+          "category_col": "Goal",
+          "value_cols": [
+            "Saved So Far"
+          ]
+        }
+      ]
+    }
+  },
+  "pdf": {
+    "title": "Monthly Budget Planner",
+    "pages": [
+      {
+        "type": "cover"
+      },
+      {
+        "type": "table",
+        "title": "Monthly Budget Overview",
+        "subtitle": "Fill in your plan at the start of the month, then record what you really spent",
+        "columns": [
+          "Category",
+          "Budgeted",
+          "Actual",
+          "Difference"
+        ],
+        "col_widths": [
+          2.2,
+          1,
+          1,
+          1
+        ],
+        "prefill": [
+          "Income",
+          "Rent / Mortgage",
+          "Utilities",
+          "Phone & Internet",
+          "Insurance",
+          "Groceries",
+          "Transportation",
+          "Dining Out",
+          "Entertainment",
+          "Subscriptions",
+          "Health",
+          "Shopping",
+          "Savings",
+          "Debt Payments",
+          "Other"
+        ],
+        "rows": 18,
+        "total_row": true
+      },
+      {
+        "type": "table",
+        "title": "Expense Log",
+        "subtitle": "One line per purchase. Total at the bottom of each page",
+        "columns": [
+          "Date",
+          "Description",
+          "Category",
+          "Amount"
+        ],
+        "col_widths": [
+          0.8,
+          2.4,
+          1.2,
+          0.9
+        ],
+        "rows": 26,
+        "total_row": true
+      },
+      {
+        "type": "boxes",
+        "title": "Savings Goals",
+        "subtitle": "One goal per box. Shade the bar as you get closer",
+        "boxes": [
+          "Goal 1  |  Target:            Deadline:",
+          "Goal 2  |  Target:            Deadline:",
+          "Goal 3  |  Target:            Deadline:",
+          "Goal 4  |  Target:            Deadline:"
+        ],
+        "box_height": 42
+      },
+      {
+        "type": "checklist",
+        "title": "Monthly Money Checklist",
+        "sections": {
+          "Start of the month": [
+            "Set this month's budget",
+            "Schedule bill payments",
+            "Transfer savings automatically",
+            "Review subscriptions"
+          ],
+          "Every week": [
+            "Log all receipts",
+            "Check category totals",
+            "Plan grocery spending",
+            "Move leftover cash to savings"
+          ],
+          "End of the month": [
+            "Compare budget vs actual",
+            "Update savings goals",
+            "Update debt balances",
+            "Set one improvement for next month"
+          ]
+        }
+      },
+      {
+        "type": "habit_tracker",
+        "title": "Money Habits Tracker",
+        "subtitle": "Tick a box for every day you keep the habit",
+        "habits": [
+          "No-spend day",
+          "Cooked at home",
+          "Logged expenses",
+          "No impulse buys",
+          "Checked balances"
+        ]
+      },
+      {
+        "type": "notes",
+        "title": "Notes & Ideas"
+      }
+    ]
+  },
+  "listing": {
+    "title": "Monthly Budget Planner Excel Spreadsheet, Expense Tracker, Savings Goal & Debt Payoff Template, Google Sheets Compatible, Printable PDF",
+    "description": "Take control of your money with a budget planner that does the math for you. This Excel spreadsheet (also works in Google Sheets) includes a monthly budget with budget-vs-actual tracking, a running expense log with category dropdowns, savings goal progress bars, a debt tracker, and a dashboard that summarises everything on one screen. The matching printable PDF planner gives you a monthly overview, expense log, savings goal boxes, a money checklist and a habits tracker for the days you prefer pen and paper.",
+    "tags": [
+      "budget planner",
+      "budget spreadsheet",
+      "expense tracker",
+      "monthly budget",
+      "savings tracker",
+      "debt tracker",
+      "excel budget",
+      "google sheets budget",
+      "finance planner",
+      "budget template",
+      "money planner",
+      "printable budget",
+      "digital download"
+    ]
+  }
+}

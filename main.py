@@ -102,6 +102,16 @@ def run_full_pipeline():
         logger.warning("⚠️ Tüm fırsatlar daha önce üretilmiş. Pipeline durduruluyor.")
         return {"status": "all_duplicates", "products": []}
 
+    # Sadece kategori paketi olan keyword'ler üretilir (kalite garantisi)
+    from spec import detect_category, supported_categories
+    unsupported = [o["keyword"] for o in opportunities if not detect_category(o["keyword"])]
+    if unsupported:
+        logger.info(f"  ⏭️ Desteklenen kategori dışı {len(unsupported)} keyword atlandı: {', '.join(unsupported[:5])}")
+    opportunities = [o for o in opportunities if detect_category(o["keyword"])]
+    if not opportunities:
+        logger.warning(f"⚠️ Desteklenen kategorilerde ({supported_categories()}) fırsat yok. Pipeline durduruluyor.")
+        return {"status": "no_supported_opportunities", "products": []}
+
     logger.info(f"\n🏆 {len(opportunities)} fırsat bulundu:")
     for i, opp in enumerate(opportunities):
         logger.info(f"  {i+1}. [{opp['score']}] {opp['keyword']} — ${opp['suggested_price_excel']}")
