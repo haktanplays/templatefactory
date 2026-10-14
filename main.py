@@ -190,13 +190,13 @@ def run_trends_only():
 
     return opportunities
 
-def run_single_keyword(keyword):
-    """Tek bir keyword için ürün üret."""
+def run_single_keyword(keyword, spec_path=None):
+    """Tek bir keyword için ürün üret. spec_path: Claude API yerine hazır spec dosyası kullan."""
     config = load_config()
-    logger.info(f"🎯 Tek keyword modu: '{keyword}'")
+    logger.info(f"🎯 Tek keyword modu: '{keyword}'" + (f" (spec: {spec_path})" if spec_path else ""))
 
     from product_generator import generate_products
-    product = generate_products(keyword, config)
+    product = generate_products(keyword, config, spec_path=spec_path)
 
     from gumroad_publisher import publish_products
     result = publish_products(product, config)
@@ -327,15 +327,21 @@ if __name__ == "__main__":
     parser.add_argument("--keyword", type=str, help="Generate for specific keyword")
     parser.add_argument("--status", action="store_true", help="Show statistics")
     parser.add_argument("--selftest", action="store_true", help="Build every category pack in every theme and run the QA gate")
+    parser.add_argument("--spec", type=str, help="With --keyword: use this spec JSON instead of calling the Claude API")
+    parser.add_argument("--prompt", type=str, metavar="KEYWORD", help="Print the spec prompt for KEYWORD (write the spec with any Claude client, then use --spec)")
     args = parser.parse_args()
 
     if args.selftest:
         sys.exit(0 if run_selftest() else 1)
+    elif args.prompt:
+        from product_generator import build_prompt
+        from spec import detect_category
+        print(build_prompt(args.prompt, detect_category(args.prompt)))
     elif args.status:
         show_status()
     elif args.trends_only:
         run_trends_only()
     elif args.keyword:
-        run_single_keyword(args.keyword)
+        run_single_keyword(args.keyword, spec_path=args.spec)
     else:
         run_full_pipeline()

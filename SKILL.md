@@ -28,6 +28,8 @@ Flow: Claude spec fails → regenerate with the failure list (`qa.max_claude_att
 - `python main.py --trends-only` — discover and report trends only
 - `python main.py --keyword "wedding guest list tracker"` — generate one product set
 - `python main.py --selftest` — build every category pack in every theme and run the QA gate (exit code 1 on failure)
+- `python main.py --prompt "wedding seating chart"` — print the spec prompt; write the spec with any Claude client (e.g. Claude Code on a subscription), save it as JSON
+- `python main.py --keyword "wedding seating chart" --spec specs/wedding_seating_chart.json` — build from that spec without calling the API; a failing spec returns the QA failure list to the author instead of falling back
 - `python main.py --status` — stats from past runs
 
 ## Files
@@ -46,6 +48,7 @@ Flow: Claude spec fails → regenerate with the failure list (`qa.max_claude_att
 - Python 3.10+, `pip install -r requirements.txt`
 - **LibreOffice** (`soffice`) and poppler (`pdftoppm`): required for the formula check in the quality gate and for real-screenshot listing images. Debian/Ubuntu: `apt install libreoffice-calc poppler-utils`; macOS: `brew install --cask libreoffice && brew install poppler`
 - API keys in `.env`: `ANTHROPIC_API_KEY` (spec generation; without it the category pack is used as-is), `GUMROAD_ACCESS_TOKEN`
+- No API key? Use the `--prompt` / `--spec` pair: a Claude subscription (Claude Code, claude.ai) writes the spec, the pipeline renders and QA-checks it. Subscription credentials cannot be used for the API itself.
 
 ## Setup
 ```bash

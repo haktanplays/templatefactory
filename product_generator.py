@@ -41,6 +41,33 @@ class ProductQAError(RuntimeError):
         self.keyword, self.failures = keyword, failures
 
 
+def build_prompt(keyword, category=None, feedback=None):
+    """Claude'a gönderilen spec isteği. --prompt ile yazdırılır; Claude Code gibi bir asistan aynı metinle spec yazabilir."""
+    example = load_pack(category) if category else load_pack("budget")
+    prompt = f"""Design a complete product spec for this keyword.
+
+KEYWORD: "{keyword}"
+CATEGORY: {category or "general (closest example below)"}
+
+{SCHEMA_DOC}
+
+COMPLETE EXAMPLE SPEC (same format, related category — use it as a quality bar, do not copy it):
+{json.dumps(example, ensure_ascii=False)}
+
+Now write a NEW spec for "{keyword}". If the keyword emphasises one aspect (e.g. "guest list", "grocery", "debt payoff"),
+make that aspect the first and richest sheet and the main dashboard KPIs. Pick a theme that fits the topic.
+Output ONLY the JSON object."""
+    if feedback:
+        prompt += "\n\nA previous spec for this keyword FAILED these automated quality checks. Fix every one of them:\n- " + "\n- ".join(feedback[:12])
+    return prompt
+
+
+def load_spec_file(path):
+    """Dışarıdan (ör. Claude Code ile) yazılmış spec dosyasını okur ve doğrular."""
+    with open(path, encoding="utf-8") as f:
+        return validate_spec(json.load(f))
+
+
 def generate_spec(keyword, config, feedback=None, force_pack=False):
     """(spec, category, source) döndürür. source: 'claude' | 'pack'.
     feedback: önceki denemenin QA hataları (Claude'a iletilir). force_pack: Claude'u atla, paketi kullan."""
@@ -62,22 +89,7 @@ def generate_spec(keyword, config, feedback=None, force_pack=False):
 
     import anthropic
     client = anthropic.Anthropic(api_key=api_key)
-    example = pack or load_pack("budget")
-    user_prompt = f"""Design a complete product spec for this keyword.
-
-KEYWORD: "{keyword}"
-CATEGORY: {category or "general (closest example below)"}
-
-{SCHEMA_DOC}
-
-COMPLETE EXAMPLE SPEC (same format, related category — use it as a quality bar, do not copy it):
-{json.dumps(example, ensure_ascii=False)}
-
-Now write a NEW spec for "{keyword}". If the keyword emphasises one aspect (e.g. "guest list", "grocery", "debt payoff"),
-make that aspect the first and richest sheet and the main dashboard KPIs. Pick a theme that fits the topic.
-Output ONLY the JSON object."""
-    if feedback:
-        user_prompt += "\n\nA previous spec for this keyword FAILED these automated quality checks. Fix every one of them:\n- " + "\n- ".join(feedback[:12])
+    user_prompt = build_prompt(keyword, category, feedback)
 
     last_error = None
     for attempt in range(3):
@@ -172,8 +184,9 @@ def _build_product(keyword, spec, category, source, config):
     }
 
 
-def generate_products(keyword, config=None):
+def generate_products(keyword, config=None, spec_path=None):
     """Bir keyword için tüm ürünleri üretir ve kalite kapısından geçirir.
+    spec_path verilirse Claude API çağrılmaz; dosyadaki spec kullanılır (ör. Claude Code aboneliğiyle yazılmış).
     Kapıyı geçemeyen Claude spec'i hata listesiyle yeniden üretilir, sonra kategori paketine düşülür.
     Hiçbiri geçmezse ProductQAError fırlatılır: ürün yayınlanmaz."""
     if config is None:
@@ -183,7 +196,11 @@ def generate_products(keyword, config=None):
 
     feedback, force_pack, claude_attempts = None, False, 0
     while True:
-        spec, category, source = generate_spec(keyword, config, feedback=feedback, force_pack=force_pack)
+        if spec_path:
+            spec, category, source = load_spec_file(spec_path), detect_category(keyword), "file"
+            logger.info(f"📄 Spec dosyadan okundu: {spec_path}")
+        else:
+            spec, category, source = generate_spec(keyword, config, feedback=feedback, force_pack=force_pack)
         product = _build_product(keyword, spec, category, source, config)
         report = run_qa(product, config)
         product["qa"] = report.to_dict()
@@ -191,6 +208,9 @@ def generate_products(keyword, config=None):
         if report.passed:
             return product
         failures = report.failures
+        if source == "file":
+            # Dosya spec'i yazarına geri döner; sessizce pakete düşmek hatayı gizlerdi
+            raise ProductQAError(keyword, failures)
         if source == "claude" and claude_attempts < max_claude:
             claude_attempts += 1
             feedback = failures
