@@ -11,6 +11,7 @@ from spec import detect_category, load_pack, validate_spec, SpecError, SCHEMA_DO
 from excel_builder import build_workbook
 from pdf_builder import build_pdf
 from preview_generator import generate_preview
+from qa import run_qa
 
 logger = logging.getLogger("template-machine.generator")
 
@@ -33,11 +34,25 @@ def _extract_json(text):
     return json.loads(text[start:end + 1])
 
 
-def generate_spec(keyword, config):
-    """(spec, category, source) döndürür. source: 'claude' | 'pack'."""
+class ProductQAError(RuntimeError):
+    """Ürün kalite kapısını geçemedi; yayınlanmamalı."""
+    def __init__(self, keyword, failures):
+        super().__init__(f"'{keyword}' QA geçemedi: " + "; ".join(failures[:5]))
+        self.keyword, self.failures = keyword, failures
+
+
+def generate_spec(keyword, config, feedback=None, force_pack=False):
+    """(spec, category, source) döndürür. source: 'claude' | 'pack'.
+    feedback: önceki denemenin QA hataları (Claude'a iletilir). force_pack: Claude'u atla, paketi kullan."""
     category = detect_category(keyword)
     pack = load_pack(category) if category else None
     api_key = config.get("anthropic_api_key")
+
+    if force_pack:
+        if not pack:
+            raise SpecError(f"'{keyword}' için kategori paketi yok")
+        logger.info(f"📦 '{category}' kategori paketi kullanılıyor (bilinen-iyi spec)")
+        return validate_spec(copy.deepcopy(pack)), category, "pack"
 
     if not api_key:
         if not pack:
@@ -61,6 +76,8 @@ COMPLETE EXAMPLE SPEC (same format, related category — use it as a quality bar
 Now write a NEW spec for "{keyword}". If the keyword emphasises one aspect (e.g. "guest list", "grocery", "debt payoff"),
 make that aspect the first and richest sheet and the main dashboard KPIs. Pick a theme that fits the topic.
 Output ONLY the JSON object."""
+    if feedback:
+        user_prompt += "\n\nA previous spec for this keyword FAILED these automated quality checks. Fix every one of them:\n- " + "\n- ".join(feedback[:12])
 
     last_error = None
     for attempt in range(3):
@@ -130,16 +147,9 @@ def generate_pdf(keyword, spec, config, theme):
     return build_pdf(spec, theme, filepath, brand=config["design"]["brand_name"], tagline=config["design"]["tagline"])
 
 
-def generate_products(keyword, config=None):
-    """Bir keyword için tüm ürünleri üretir."""
-    if config is None:
-        config = load_config()
-    logger.info(f"🏭 Ürün üretimi başlıyor: '{keyword}'")
-
-    spec, category, source = generate_spec(keyword, config)
+def _build_product(keyword, spec, category, source, config):
     themes = config["design"].get("themes", ["ocean"])
     theme = spec.get("theme") if spec.get("theme") in themes else themes[0]
-
     excel_path, preview_src = generate_excel(keyword, spec, config, theme)
     pdf_path = generate_pdf(keyword, spec, config, theme)
     preview_path = generate_preview(keyword, spec, theme_name=theme, output_dir=config["output_dir"], excel_path=preview_src)
@@ -147,11 +157,9 @@ def generate_products(keyword, config=None):
         Path(preview_src).unlink()
     except OSError:
         pass
-
     excel_price = config["pricing"]["excel_base"]
     pdf_price = config["pricing"]["pdf_base"]
     bundle_price = round((excel_price + pdf_price) * (1 - config["pricing"]["bundle_discount"]), 2)
-
     return {
         "keyword": keyword,
         "category": category,
@@ -162,6 +170,37 @@ def generate_products(keyword, config=None):
         "pricing": {"excel": excel_price, "pdf": pdf_price, "bundle": bundle_price},
         "listing": spec.get("listing", {}),
     }
+
+
+def generate_products(keyword, config=None):
+    """Bir keyword için tüm ürünleri üretir ve kalite kapısından geçirir.
+    Kapıyı geçemeyen Claude spec'i hata listesiyle yeniden üretilir, sonra kategori paketine düşülür.
+    Hiçbiri geçmezse ProductQAError fırlatılır: ürün yayınlanmaz."""
+    if config is None:
+        config = load_config()
+    logger.info(f"🏭 Ürün üretimi başlıyor: '{keyword}'")
+    max_claude = int(config.get("qa", {}).get("max_claude_attempts", 2))
+
+    feedback, force_pack, claude_attempts = None, False, 0
+    while True:
+        spec, category, source = generate_spec(keyword, config, feedback=feedback, force_pack=force_pack)
+        product = _build_product(keyword, spec, category, source, config)
+        report = run_qa(product, config)
+        product["qa"] = report.to_dict()
+        product["qa"]["source"] = source
+        if report.passed:
+            return product
+        failures = report.failures
+        if source == "claude" and claude_attempts < max_claude:
+            claude_attempts += 1
+            feedback = failures
+            logger.warning(f"🔁 QA geçmedi, Claude'a hata listesiyle yeniden üretiliyor (deneme {claude_attempts}/{max_claude})")
+            continue
+        if not force_pack and category:
+            force_pack = True
+            logger.warning("🔁 QA geçmedi, bilinen-iyi kategori paketine düşülüyor")
+            continue
+        raise ProductQAError(keyword, failures)
 
 
 if __name__ == "__main__":

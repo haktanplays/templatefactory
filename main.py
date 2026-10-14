@@ -125,7 +125,7 @@ def run_full_pipeline():
             product = generate_products(opp["keyword"], config)
             product["opportunity"] = opp
             all_products.append(product)
-            logger.info(f"  ✅ {opp['keyword']}: Excel + PDF üretildi")
+            logger.info(f"  ✅ {opp['keyword']}: Excel + PDF üretildi, QA geçti ({len(product['qa']['checks'])} kontrol)")
         except Exception as e:
             logger.error(f"  ❌ {opp['keyword']} üretim hatası: {e}")
 
@@ -146,6 +146,8 @@ def run_full_pipeline():
                 "files": product["files"],
                 "pricing": product["pricing"],
                 "listing_title": product.get("listing", {}).get("title", ""),
+                "qa_passed": True,
+                "spec_source": product.get("spec_source"),
             })
         except Exception as e:
             logger.error(f"  ❌ {product['keyword']} yükleme hatası: {e}")
@@ -212,8 +214,38 @@ def run_single_keyword(keyword):
     logger.info(f"  PDF: {product['files'].get('pdf', 'N/A')}")
     logger.info(f"  Fiyat: Excel ${product['pricing']['excel']} | PDF ${product['pricing']['pdf']} | Bundle ${product['pricing']['bundle']}")
     logger.info(f"  Gumroad: {result['status']}")
+    logger.info(f"  QA: geçti ({len(product['qa']['checks'])} kontrol, spec kaynağı: {product['spec_source']})")
 
     return product
+
+
+def run_selftest():
+    """Her kategori paketini her temayla üretip kalite kapısından geçirir. Hata varsa çıkış kodu 1."""
+    import tempfile, copy
+    from spec import supported_categories, load_pack, validate_spec
+    from product_generator import _build_product
+    from qa import run_qa
+    config = load_config()
+    config["output_dir"] = tempfile.mkdtemp(prefix="tm_selftest_")
+    failures = []
+    total = 0
+    for cat in supported_categories():
+        for theme in config["design"]["themes"]:
+            total += 1
+            spec = validate_spec(copy.deepcopy(load_pack(cat)))
+            spec["theme"] = theme
+            keyword = f"{cat.replace('_', ' ')} {theme}"
+            try:
+                product = _build_product(keyword, spec, cat, "pack", config)
+                report = run_qa(product, config)
+                if not report.passed:
+                    failures.append((keyword, report.failures))
+            except Exception as e:
+                failures.append((keyword, [f"exception: {e}"]))
+    logger.info(f"\n{'='*50}\nSELFTEST: {total - len(failures)}/{total} ürün geçti\n{'='*50}")
+    for kw, errs in failures:
+        logger.error(f"  ❌ {kw}: " + "; ".join(errs[:5]))
+    return not failures
 
 def show_status():
     """Geçmiş çalışmaların istatistiklerini gösterir."""
@@ -294,9 +326,12 @@ if __name__ == "__main__":
     parser.add_argument("--trends-only", action="store_true", help="Only discover trends")
     parser.add_argument("--keyword", type=str, help="Generate for specific keyword")
     parser.add_argument("--status", action="store_true", help="Show statistics")
+    parser.add_argument("--selftest", action="store_true", help="Build every category pack in every theme and run the QA gate")
     args = parser.parse_args()
 
-    if args.status:
+    if args.selftest:
+        sys.exit(0 if run_selftest() else 1)
+    elif args.status:
         show_status()
     elif args.trends_only:
         run_trends_only()

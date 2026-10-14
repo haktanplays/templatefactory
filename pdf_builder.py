@@ -96,7 +96,7 @@ def build_pdf(spec, theme_name, path, brand="ProTemplates", tagline=""):
                           PageTemplate(id="main", frames=[frame], onPage=on_page)])
 
     story = []
-    renderers = {"cover": _cover, "table": _table, "checklist": _checklist, "weekly_grid": _weekly_grid,
+    renderers = {"cover": _cover, "guide": _guide, "table": _table, "checklist": _checklist, "weekly_grid": _weekly_grid,
                  "habit_tracker": _habit_tracker, "boxes": _boxes, "notes": _notes}
     pages = pdf["pages"]
     for i, page in enumerate(pages):
@@ -154,6 +154,19 @@ def _cover(page, spec, t):
                  "Print the tracker pages as many times as you need."]:
         items.append(Paragraph(f"•  {line}", t.body))
     return [Spacer(1, 6 * mm)] + items
+
+
+def _guide(page, spec, t):
+    """Açıklayıcı rehber: her metrik/bölüm için başlık + 2-3 cümle."""
+    out = _heading(page, t, "How to Use This Planner")
+    for item in page.get("items", []):
+        cell = [[Paragraph(item["heading"].upper(), t.label)], [Paragraph(item["text"], t.body)]]
+        tbl = Table(cell, colWidths=[CONTENT_W])
+        tbl.setStyle(TableStyle([("BACKGROUND", (0, 0), (0, 0), t.light), ("LINEBELOW", (0, 0), (0, 0), 0.6, t.accent),
+                                 ("BOX", (0, 0), (-1, -1), 0.6, t.border), ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                                 ("RIGHTPADDING", (0, 0), (-1, -1), 6), ("TOPPADDING", (0, 1), (-1, 1), 5), ("BOTTOMPADDING", (0, 1), (-1, 1), 7)]))
+        out += [KeepTogether(tbl), Spacer(1, 4 * mm)]
+    return out
 
 
 def _table(page, spec, t):

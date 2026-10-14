@@ -11,6 +11,7 @@ from datetime import datetime, date
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font, Alignment, PatternFill
+from openpyxl.comments import Comment
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.formatting.rule import CellIsRule, DataBarRule
 from openpyxl.chart import BarChart, LineChart, PieChart, Reference
@@ -18,7 +19,9 @@ from design_system import DesignSystem
 
 logger = logging.getLogger("template-machine.excel")
 
-HEADER_ROW = 4            # veri sayfalarında başlık satırı
+HEADER_ROW = 5            # veri sayfalarında başlık satırı (1 başlık, 2 amaç, 3 nasıl kullanılır, 4 boşluk)
+# Dashboard düzeni (qa.py de bu sabitleri kullanır)
+DASH = {"kpi_row": 4, "metric_row": 8, "insight_row": 12, "inside_row": 20, "chart_anchors": ["F4", "F22"]}
 DEFAULT_WIDTHS = {"text": 22, "currency": 14, "number": 12, "percent": 11, "date": 14, "dropdown": 16}
 NUMERIC_TYPES = {"currency", "number", "percent"}
 
@@ -72,6 +75,7 @@ class SheetLayout:
 def build_workbook(spec, theme_name="ocean", brand="ProTemplates", fit_one_page=False):
     wb = Workbook()
     ds = DesignSystem(wb, theme=theme_name)
+    ds.brand = brand
     excel = spec["excel"]
     symbol = excel.get("currency_symbol", "$")
 
@@ -107,12 +111,25 @@ def _build_data_sheet(ws, ds, sh, symbol, fit_one_page):
     ds.style_dashboard_title(ws, sh["name"], sh.get("purpose", ""), f"A1:{last}1", row=1)
     ws.row_dimensions[1].height = 30
     ws.row_dimensions[2].height = 18
-    ws.row_dimensions[3].height = 8
+    # Satır 3: nasıl kullanılır (açıklayıcı), satır 4: boşluk
+    ws.merge_cells(start_row=3, start_column=1, end_row=3, end_column=n)
+    how = ws.cell(row=3, column=1, value=("How to use: " + sh["how_to"]) if sh.get("how_to") else None)
+    how.font = Font(name="Aptos", size=9, italic=True, color=ds.t["text_muted"])
+    how.fill = ds.fill_bg_light
+    how.alignment = Alignment(vertical="center", wrap_text=True)
+    for c in range(1, n + 1):
+        ws.cell(row=3, column=c).fill = ds.fill_bg_light
+    ws.row_dimensions[3].height = 26 if sh.get("how_to") else 6
+    ws.row_dimensions[4].height = 6
 
-    # Başlık satırı
+    # Başlık satırı (+ kolon yardım notları: hücre yorumu olarak)
     ds.style_header_row(ws, row=HEADER_ROW, col_start=1, col_end=n)
     for ci, col in enumerate(columns):
-        ws.cell(row=HEADER_ROW, column=ci + 1, value=col["name"])
+        cell = ws.cell(row=HEADER_ROW, column=ci + 1, value=col["name"])
+        if col.get("help"):
+            cm = Comment(col["help"], getattr(ds, "brand", "Template"))
+            cm.width, cm.height = 260, 90
+            cell.comment = cm
 
     data_cols = [c for c in columns if not c.get("formula")]
     rows = sh.get("rows", [])
@@ -212,10 +229,68 @@ def _build_data_sheet(ws, ds, sh, symbol, fit_one_page):
     chart = sh.get("chart")
     if chart and rows:
         _add_chart(ws, ds, chart, layout, anchor=f"{get_column_letter(n + 2)}{HEADER_ROW}", width=16, height=9)
+    if rows:
+        _add_quick_stats(ws, ds, sh, layout, symbol, start_col=n + 2, start_row=HEADER_ROW + (14 if chart else 0))
 
     ds.finalize_sheet(ws, freeze=f"A{data_start}", gridlines=False)
     _print_setup(ws, fit_one_page)
     return layout
+
+
+def _add_quick_stats(ws, ds, sh, layout, symbol, start_col, start_row):
+    """Sayısal kolonlar için otomatik özet: ortalama / en yüksek / en düşük / en yüksek kalem."""
+    numeric = [c for c in sh["columns"] if c["type"] in NUMERIC_TYPES or c.get("formula")][:3]
+    if not numeric:
+        return
+    text_cols = [c for c in sh["columns"] if c["type"] == "text"]
+    label_col = text_cols[0]["name"] if text_cols else None
+    r0 = start_row
+    ws.merge_cells(start_row=r0, start_column=start_col, end_row=r0, end_column=start_col + len(numeric))
+    h = ws.cell(row=r0, column=start_col, value="QUICK STATS")
+    h.font = ds.font_subheader
+    ds.style_subheader_row(ws, r0 + 1, col_start=start_col, col_end=start_col + len(numeric))
+    ws.cell(row=r0 + 1, column=start_col, value="")
+    for i, c in enumerate(numeric):
+        ws.cell(row=r0 + 1, column=start_col + 1 + i, value=c["name"])
+    stats = [("Average", "AVERAGE"), ("Highest", "MAX"), ("Lowest", "MIN")]
+    if label_col:
+        stats.append(("Highest item", None))
+    for si, (label, func) in enumerate(stats):
+        r = r0 + 2 + si
+        lc = ws.cell(row=r, column=start_col, value=label)
+        lc.font = ds.font_data_bold
+        lc.border = ds.border_light
+        for i, c in enumerate(numeric):
+            rng = f"{layout.letter(c['name'])}{layout.data_start}:{layout.letter(c['name'])}{layout.data_end}"
+            if func:
+                v = f"={func}({rng})"
+                fmt = _number_format(c if not c.get("formula") else {"type": c.get("type", "number")}, symbol)
+            else:
+                lrng = f"{layout.letter(label_col)}{layout.data_start}:{layout.letter(label_col)}{layout.data_end}"
+                v = f'=IFERROR(INDEX({lrng},MATCH(MAX({rng}),{rng},0)),"")'
+                fmt = "General"
+            cell = ws.cell(row=r, column=start_col + 1 + i, value=v)
+            cell.number_format = fmt
+            cell.font = ds.font_data
+            cell.border = ds.border_light
+            cell.alignment = Alignment(horizontal="right" if func else "center", vertical="center")
+        ws.row_dimensions[r].height = 20
+    for i in range(len(numeric) + 1):
+        letter = get_column_letter(start_col + i)
+        if (ws.column_dimensions[letter].width or 0) < 16:
+            ws.column_dimensions[letter].width = 16
+
+
+def _resolve_dashboard_formula(formula, kpi_cells, layouts):
+    """{Label} -> dashboard hücresi, {Sheet!Column} -> veri aralığı."""
+    def repl(m):
+        ref = m.group(1)
+        if ref in kpi_cells:
+            return kpi_cells[ref]
+        sheet, _, col = ref.partition("!")
+        return layouts[sheet].range(col)
+    import re
+    return re.sub(r"\{([^}]+)\}", repl, formula)
 
 
 def _add_chart(ws, ds, chart_cfg, layout, anchor, width=16, height=8.5):
@@ -274,41 +349,70 @@ def _build_dashboard(ws, ds, spec, layouts, symbol, fit_one_page):
     ws.row_dimensions[1].height = 34
     ws.row_dimensions[2].height = 20
     ws.row_dimensions[3].height = 10
+    explain_font = Font(name="Aptos", size=9, italic=True, color=ds.t["text_muted"])
+    explain_align = Alignment(wrap_text=True, vertical="top", horizontal="center")
+    dash = spec["excel"]["dashboard"]
+    kpi_cells = {}
 
-    kpis = spec["excel"]["dashboard"].get("kpis", [])
-    for ki, kpi in enumerate(kpis[:4]):
+    def card_row(items, row, build_formula):
+        for ki, item in enumerate(items[:4]):
+            col = ki + 1
+            formula = build_formula(item)
+            fmt = {"currency": f'"{symbol}"#,##0.00', "percent": "0%"}.get(item.get("format"), "#,##0")
+            ds.style_kpi_card(ws, row=row, col=col, label=item["label"].upper(), value_cell_ref=formula, number_format=fmt)
+            kpi_cells[item["label"]] = f"${get_column_letter(col)}${row + 1}"
+            ex = ws.cell(row=row + 2, column=col, value=item.get("explain") or None)
+            ex.font = explain_font
+            ex.alignment = explain_align
+            ex.fill = ds.fill_white
+            ex.border = ds.border_light
+        ws.row_dimensions[row].height = 20
+        ws.row_dimensions[row + 1].height = 40
+        ws.row_dimensions[row + 2].height = 48
+        ws.row_dimensions[row + 3].height = 8
+
+    def kpi_formula(kpi):
         lay = layouts[kpi["sheet"]]
         rng = lay.range(kpi["column"])
-        agg = kpi["agg"]
-        if agg == "sumif":
-            where = lay.range(kpi["where_column"])
-            formula = f'=SUMIF({where},"{kpi.get("equals", "")}",{rng})'
-        else:
-            func = {"sum": "SUM", "avg": "AVERAGE", "count": "COUNTA", "max": "MAX", "min": "MIN"}[agg]
-            formula = f"={func}({rng})"
-        fmt = {"currency": f'"{symbol}"#,##0.00', "percent": "0%"}.get(kpi.get("format"), "#,##0")
-        col = ki + 1
-        ds.style_kpi_card(ws, row=4, col=col, label=kpi["label"].upper(), value_cell_ref=formula, number_format=fmt)
-    ws.row_dimensions[4].height = 20
-    ws.row_dimensions[5].height = 42
-    ws.row_dimensions[6].height = 10
+        if kpi["agg"] == "sumif":
+            return f'=SUMIF({lay.range(kpi["where_column"])},"{kpi.get("equals", "")}",{rng})'
+        func = {"sum": "SUM", "avg": "AVERAGE", "count": "COUNTA", "max": "MAX", "min": "MIN"}[kpi["agg"]]
+        return f"={func}({rng})"
 
-    charts = spec["excel"]["dashboard"].get("charts", [])
-    anchors = ["A7", "F7"]
-    for ch, anchor in zip(charts[:2], anchors):
+    card_row(dash.get("kpis", []), DASH["kpi_row"], kpi_formula)
+    card_row(dash.get("metrics", []), DASH["metric_row"],
+             lambda m: _resolve_dashboard_formula(m["formula"], kpi_cells, layouts))
+
+    # Key insights: formülle yazılan cümleler
+    r = DASH["insight_row"]
+    ws.cell(row=r, column=1, value="KEY INSIGHTS").font = ds.font_subheader
+    for ins in dash.get("insights", [])[:5]:
+        r += 1
+        ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=4)
+        value = _resolve_dashboard_formula(ins, kpi_cells, layouts) if ins.startswith("=") else ins
+        c = ws.cell(row=r, column=1, value=value)
+        c.font = ds.font_data
+        c.alignment = Alignment(wrap_text=True, vertical="center")
+        c.fill = ds.fill_bg_light
+        for cc in range(1, 5):
+            ws.cell(row=r, column=cc).fill = ds.fill_bg_light
+            ws.cell(row=r, column=cc).border = ds.border_light
+        ws.row_dimensions[r].height = 30
+
+    charts = dash.get("charts", [])
+    for ch, anchor in zip(charts[:2], DASH["chart_anchors"]):
         _add_chart(ws, ds, ch, layouts[ch["sheet"]], anchor=anchor, width=15.5, height=8.5)
 
     # Sayfa dizini
-    r = 25
-    c = ws.cell(row=r, column=1, value="WHAT'S INSIDE")
-    c.font = ds.font_subheader
+    r = max(DASH["inside_row"], r + 2)
+    ws.cell(row=r, column=1, value="WHAT'S INSIDE").font = ds.font_subheader
     r += 1
     for sh in spec["excel"]["sheets"]:
         ws.cell(row=r, column=1, value=sh["name"]).font = ds.font_data_bold
-        ws.merge_cells(start_row=r, start_column=2, end_row=r, end_column=9)
+        ws.merge_cells(start_row=r, start_column=2, end_row=r, end_column=4)
         d = ws.cell(row=r, column=2, value=sh.get("purpose", ""))
         d.font = ds.font_muted
-        d.alignment = Alignment(vertical="center")
+        d.alignment = Alignment(vertical="center", wrap_text=True)
         r += 1
 
     ds.finalize_sheet(ws, freeze=None, gridlines=False)

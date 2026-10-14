@@ -18,150 +18,899 @@
         "name": "Weekly Meal Plan",
         "purpose": "Breakfast, lunch, dinner and snacks for every day of the week",
         "columns": [
-          {"name": "Day", "type": "text", "width": 12},
-          {"name": "Breakfast", "type": "text", "width": 26},
-          {"name": "Lunch", "type": "text", "width": 26},
-          {"name": "Dinner", "type": "text", "width": 26},
-          {"name": "Snack", "type": "text", "width": 20},
-          {"name": "Prep Time (min)", "type": "number", "total": "sum"},
-          {"name": "Calories", "type": "number", "total": "sum", "conditional": "data_bar"}
+          {
+            "name": "Day",
+            "type": "text",
+            "width": 12
+          },
+          {
+            "name": "Breakfast",
+            "type": "text",
+            "width": 26
+          },
+          {
+            "name": "Lunch",
+            "type": "text",
+            "width": 26
+          },
+          {
+            "name": "Dinner",
+            "type": "text",
+            "width": 26
+          },
+          {
+            "name": "Snack",
+            "type": "text",
+            "width": 20
+          },
+          {
+            "name": "Prep Time (min)",
+            "type": "number",
+            "total": "sum",
+            "help": "Minutes of hands-on cooking for the whole day."
+          },
+          {
+            "name": "Calories",
+            "type": "number",
+            "total": "sum",
+            "conditional": "data_bar",
+            "help": "Total for the day across all meals and snacks."
+          }
         ],
         "rows": [
-          ["Monday", "Overnight oats with berries", "Chicken burrito bowl", "Salmon, roasted veg, quinoa", "Greek yogurt + almonds", 25, 1850],
-          ["Tuesday", "Veggie egg muffins", "Turkey & avocado wrap", "Beef stir-fry with rice", "Apple + peanut butter", 20, 1920],
-          ["Wednesday", "Overnight oats with berries", "Chicken burrito bowl", "Lentil & sweet potato curry", "Hummus + carrots", 30, 1780],
-          ["Thursday", "Veggie egg muffins", "Mediterranean pasta salad", "Salmon, roasted veg, quinoa", "Protein smoothie", 15, 1890],
-          ["Friday", "Banana protein pancakes", "Turkey & avocado wrap", "Homemade pizza night", "Popcorn", 35, 2100],
-          ["Saturday", "Avocado toast + eggs", "Leftover curry", "Grilled chicken tacos", "Dark chocolate", 40, 1950],
-          ["Sunday", "Banana protein pancakes", "Mediterranean pasta salad", "Slow-cooker chili (prep for next week)", "Fruit salad", 90, 1870]
+          [
+            "Monday",
+            "Overnight oats with berries",
+            "Chicken burrito bowl",
+            "Salmon, roasted veg, quinoa",
+            "Greek yogurt + almonds",
+            25,
+            1850
+          ],
+          [
+            "Tuesday",
+            "Veggie egg muffins",
+            "Turkey & avocado wrap",
+            "Beef stir-fry with rice",
+            "Apple + peanut butter",
+            20,
+            1920
+          ],
+          [
+            "Wednesday",
+            "Overnight oats with berries",
+            "Chicken burrito bowl",
+            "Lentil & sweet potato curry",
+            "Hummus + carrots",
+            30,
+            1780
+          ],
+          [
+            "Thursday",
+            "Veggie egg muffins",
+            "Mediterranean pasta salad",
+            "Salmon, roasted veg, quinoa",
+            "Protein smoothie",
+            15,
+            1890
+          ],
+          [
+            "Friday",
+            "Banana protein pancakes",
+            "Turkey & avocado wrap",
+            "Homemade pizza night",
+            "Popcorn",
+            35,
+            2100
+          ],
+          [
+            "Saturday",
+            "Avocado toast + eggs",
+            "Leftover curry",
+            "Grilled chicken tacos",
+            "Dark chocolate",
+            40,
+            1950
+          ],
+          [
+            "Sunday",
+            "Banana protein pancakes",
+            "Mediterranean pasta salad",
+            "Slow-cooker chili (prep for next week)",
+            "Fruit salad",
+            90,
+            1870
+          ]
         ],
         "blank_rows": 0,
-        "chart": {"type": "bar", "title": "Calories per Day", "category_col": "Day", "value_cols": ["Calories"]}
+        "chart": {
+          "type": "bar",
+          "title": "Calories per Day",
+          "category_col": "Day",
+          "value_cols": [
+            "Calories"
+          ]
+        },
+        "how_to": "Fill one row per day. Type meals or copy names from the Recipe Library; calories and prep time sum automatically."
       },
       {
         "name": "Recipe Library",
         "purpose": "Your go-to recipes with nutrition and cost per serving",
         "columns": [
-          {"name": "Recipe", "type": "text", "width": 30},
-          {"name": "Meal Type", "type": "dropdown", "options": ["Breakfast", "Lunch", "Dinner", "Snack"]},
-          {"name": "Servings", "type": "number"},
-          {"name": "Prep Time (min)", "type": "number"},
-          {"name": "Calories / Serving", "type": "number"},
-          {"name": "Protein (g)", "type": "number", "conditional": "data_bar"},
-          {"name": "Cost / Serving", "type": "currency"},
-          {"name": "Rating (1-5)", "type": "dropdown", "options": ["1", "2", "3", "4", "5"]},
-          {"name": "Notes", "type": "text", "width": 26}
+          {
+            "name": "Recipe",
+            "type": "text",
+            "width": 30
+          },
+          {
+            "name": "Meal Type",
+            "type": "dropdown",
+            "options": [
+              "Breakfast",
+              "Lunch",
+              "Dinner",
+              "Snack"
+            ]
+          },
+          {
+            "name": "Servings",
+            "type": "number"
+          },
+          {
+            "name": "Prep Time (min)",
+            "type": "number"
+          },
+          {
+            "name": "Calories / Serving",
+            "type": "number",
+            "help": "Calories for one serving as you portion it."
+          },
+          {
+            "name": "Protein (g)",
+            "type": "number",
+            "conditional": "data_bar",
+            "help": "Grams of protein per serving; 25-40 g per meal is a common target."
+          },
+          {
+            "name": "Cost / Serving",
+            "type": "currency",
+            "help": "Ingredient cost divided by servings. Helps pick budget-friendly staples."
+          },
+          {
+            "name": "Rating (1-5)",
+            "type": "dropdown",
+            "options": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "5"
+            ],
+            "help": "Your own score after cooking it."
+          },
+          {
+            "name": "Notes",
+            "type": "text",
+            "width": 26
+          }
         ],
         "rows": [
-          ["Overnight oats with berries", "Breakfast", 4, 10, 380, 14, 1.2, "5", "Make Sunday night, lasts 4 days"],
-          ["Veggie egg muffins", "Breakfast", 6, 25, 220, 16, 0.9, "4", "Freeze well"],
-          ["Banana protein pancakes", "Breakfast", 2, 15, 420, 24, 1.5, "4", ""],
-          ["Chicken burrito bowl", "Lunch", 4, 35, 560, 42, 3.1, "5", "Keep salsa separate"],
-          ["Turkey & avocado wrap", "Lunch", 2, 10, 480, 31, 2.6, "4", "Add avocado day-of"],
-          ["Mediterranean pasta salad", "Lunch", 5, 20, 510, 18, 1.8, "4", "Better on day 2"],
-          ["Salmon, roasted veg, quinoa", "Dinner", 4, 40, 620, 44, 4.2, "5", ""],
-          ["Beef stir-fry with rice", "Dinner", 4, 30, 590, 38, 3.4, "4", "Cook rice in bulk"],
-          ["Lentil & sweet potato curry", "Dinner", 6, 45, 450, 19, 1.4, "5", "Freezer friendly"],
-          ["Grilled chicken tacos", "Dinner", 4, 30, 540, 36, 2.9, "4", ""],
-          ["Slow-cooker chili", "Dinner", 8, 20, 480, 33, 1.7, "5", "Hands-off, 6 hours low"],
-          ["Protein smoothie", "Snack", 1, 5, 260, 25, 1.6, "4", "Prep freezer packs"]
+          [
+            "Overnight oats with berries",
+            "Breakfast",
+            4,
+            10,
+            380,
+            14,
+            1.2,
+            "5",
+            "Make Sunday night, lasts 4 days"
+          ],
+          [
+            "Veggie egg muffins",
+            "Breakfast",
+            6,
+            25,
+            220,
+            16,
+            0.9,
+            "4",
+            "Freeze well"
+          ],
+          [
+            "Banana protein pancakes",
+            "Breakfast",
+            2,
+            15,
+            420,
+            24,
+            1.5,
+            "4",
+            ""
+          ],
+          [
+            "Chicken burrito bowl",
+            "Lunch",
+            4,
+            35,
+            560,
+            42,
+            3.1,
+            "5",
+            "Keep salsa separate"
+          ],
+          [
+            "Turkey & avocado wrap",
+            "Lunch",
+            2,
+            10,
+            480,
+            31,
+            2.6,
+            "4",
+            "Add avocado day-of"
+          ],
+          [
+            "Mediterranean pasta salad",
+            "Lunch",
+            5,
+            20,
+            510,
+            18,
+            1.8,
+            "4",
+            "Better on day 2"
+          ],
+          [
+            "Salmon, roasted veg, quinoa",
+            "Dinner",
+            4,
+            40,
+            620,
+            44,
+            4.2,
+            "5",
+            ""
+          ],
+          [
+            "Beef stir-fry with rice",
+            "Dinner",
+            4,
+            30,
+            590,
+            38,
+            3.4,
+            "4",
+            "Cook rice in bulk"
+          ],
+          [
+            "Lentil & sweet potato curry",
+            "Dinner",
+            6,
+            45,
+            450,
+            19,
+            1.4,
+            "5",
+            "Freezer friendly"
+          ],
+          [
+            "Grilled chicken tacos",
+            "Dinner",
+            4,
+            30,
+            540,
+            36,
+            2.9,
+            "4",
+            ""
+          ],
+          [
+            "Slow-cooker chili",
+            "Dinner",
+            8,
+            20,
+            480,
+            33,
+            1.7,
+            "5",
+            "Hands-off, 6 hours low"
+          ],
+          [
+            "Protein smoothie",
+            "Snack",
+            1,
+            5,
+            260,
+            25,
+            1.6,
+            "4",
+            "Prep freezer packs"
+          ]
         ],
-        "blank_rows": 12
+        "blank_rows": 12,
+        "how_to": "Add recipes once, reuse them every week. Per-serving numbers make recipes comparable."
       },
       {
         "name": "Grocery List",
         "purpose": "Everything you need for the week, grouped by store section",
         "columns": [
-          {"name": "Item", "type": "text", "width": 26},
-          {"name": "Category", "type": "dropdown", "options": ["Produce", "Protein", "Dairy & Eggs", "Grains & Bread", "Pantry", "Frozen", "Other"], "width": 16},
-          {"name": "Quantity", "type": "text", "width": 12},
-          {"name": "Est. Cost", "type": "currency", "total": "sum"},
-          {"name": "Purchased", "type": "dropdown", "options": ["Yes", "No"], "option_colors": {"Yes": "success", "No": "warning"}},
-          {"name": "Store", "type": "text", "width": 16}
+          {
+            "name": "Item",
+            "type": "text",
+            "width": 26
+          },
+          {
+            "name": "Category",
+            "type": "dropdown",
+            "options": [
+              "Produce",
+              "Protein",
+              "Dairy & Eggs",
+              "Grains & Bread",
+              "Pantry",
+              "Frozen",
+              "Other"
+            ],
+            "width": 16
+          },
+          {
+            "name": "Quantity",
+            "type": "text",
+            "width": 12
+          },
+          {
+            "name": "Est. Cost",
+            "type": "currency",
+            "total": "sum",
+            "help": "Expected price; update with the real price after shopping."
+          },
+          {
+            "name": "Purchased",
+            "type": "dropdown",
+            "options": [
+              "Yes",
+              "No"
+            ],
+            "option_colors": {
+              "Yes": "success",
+              "No": "warning"
+            },
+            "help": "Switch to Yes as you shop so the Dashboard shows what is left."
+          },
+          {
+            "name": "Store",
+            "type": "text",
+            "width": 16
+          }
         ],
         "rows": [
-          ["Chicken breast", "Protein", "1.5 kg", 12.5, "Yes", "Supermarket"],
-          ["Salmon fillets", "Protein", "4 pieces", 16, "Yes", "Fish market"],
-          ["Lean ground beef", "Protein", "500 g", 7.8, "Yes", "Supermarket"],
-          ["Eggs", "Dairy & Eggs", "18", 5.2, "Yes", "Supermarket"],
-          ["Greek yogurt", "Dairy & Eggs", "1 kg", 4.9, "Yes", "Supermarket"],
-          ["Rolled oats", "Grains & Bread", "1 kg", 3.4, "No", "Supermarket"],
-          ["Quinoa", "Grains & Bread", "500 g", 4.6, "No", "Supermarket"],
-          ["Brown rice", "Grains & Bread", "1 kg", 2.9, "Yes", "Supermarket"],
-          ["Whole-wheat wraps", "Grains & Bread", "8", 3.2, "Yes", "Supermarket"],
-          ["Mixed berries", "Frozen", "1 kg", 8.5, "Yes", "Supermarket"],
-          ["Sweet potatoes", "Produce", "1 kg", 2.8, "Yes", "Farmers market"],
-          ["Bell peppers", "Produce", "6", 4.5, "Yes", "Farmers market"],
-          ["Broccoli", "Produce", "2 heads", 3.6, "No", "Farmers market"],
-          ["Avocados", "Produce", "4", 5, "No", "Farmers market"],
-          ["Bananas", "Produce", "8", 2.4, "Yes", "Supermarket"],
-          ["Red lentils", "Pantry", "500 g", 2.2, "Yes", "Supermarket"],
-          ["Olive oil", "Pantry", "500 ml", 7.9, "Yes", "Supermarket"],
-          ["Almonds", "Pantry", "250 g", 5.5, "No", "Supermarket"]
+          [
+            "Chicken breast",
+            "Protein",
+            "1.5 kg",
+            12.5,
+            "Yes",
+            "Supermarket"
+          ],
+          [
+            "Salmon fillets",
+            "Protein",
+            "4 pieces",
+            16,
+            "Yes",
+            "Fish market"
+          ],
+          [
+            "Lean ground beef",
+            "Protein",
+            "500 g",
+            7.8,
+            "Yes",
+            "Supermarket"
+          ],
+          [
+            "Eggs",
+            "Dairy & Eggs",
+            "18",
+            5.2,
+            "Yes",
+            "Supermarket"
+          ],
+          [
+            "Greek yogurt",
+            "Dairy & Eggs",
+            "1 kg",
+            4.9,
+            "Yes",
+            "Supermarket"
+          ],
+          [
+            "Rolled oats",
+            "Grains & Bread",
+            "1 kg",
+            3.4,
+            "No",
+            "Supermarket"
+          ],
+          [
+            "Quinoa",
+            "Grains & Bread",
+            "500 g",
+            4.6,
+            "No",
+            "Supermarket"
+          ],
+          [
+            "Brown rice",
+            "Grains & Bread",
+            "1 kg",
+            2.9,
+            "Yes",
+            "Supermarket"
+          ],
+          [
+            "Whole-wheat wraps",
+            "Grains & Bread",
+            "8",
+            3.2,
+            "Yes",
+            "Supermarket"
+          ],
+          [
+            "Mixed berries",
+            "Frozen",
+            "1 kg",
+            8.5,
+            "Yes",
+            "Supermarket"
+          ],
+          [
+            "Sweet potatoes",
+            "Produce",
+            "1 kg",
+            2.8,
+            "Yes",
+            "Farmers market"
+          ],
+          [
+            "Bell peppers",
+            "Produce",
+            "6",
+            4.5,
+            "Yes",
+            "Farmers market"
+          ],
+          [
+            "Broccoli",
+            "Produce",
+            "2 heads",
+            3.6,
+            "No",
+            "Farmers market"
+          ],
+          [
+            "Avocados",
+            "Produce",
+            "4",
+            5,
+            "No",
+            "Farmers market"
+          ],
+          [
+            "Bananas",
+            "Produce",
+            "8",
+            2.4,
+            "Yes",
+            "Supermarket"
+          ],
+          [
+            "Red lentils",
+            "Pantry",
+            "500 g",
+            2.2,
+            "Yes",
+            "Supermarket"
+          ],
+          [
+            "Olive oil",
+            "Pantry",
+            "500 ml",
+            7.9,
+            "Yes",
+            "Supermarket"
+          ],
+          [
+            "Almonds",
+            "Pantry",
+            "250 g",
+            5.5,
+            "No",
+            "Supermarket"
+          ]
         ],
-        "blank_rows": 20
+        "blank_rows": 20,
+        "how_to": "Build the list from the week's recipes, group by store section, tick Purchased in the shop."
       },
       {
         "name": "Prep Schedule",
         "purpose": "Prep-day plan so everything is cooked, portioned and labelled",
         "columns": [
-          {"name": "Task", "type": "text", "width": 34},
-          {"name": "Day", "type": "dropdown", "options": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]},
-          {"name": "Time Needed (min)", "type": "number", "total": "sum"},
-          {"name": "Containers", "type": "number", "total": "sum"},
-          {"name": "Status", "type": "dropdown", "options": ["To Do", "Prepped", "Eaten"], "option_colors": {"To Do": "warning", "Prepped": "success", "Eaten": "info"}},
-          {"name": "Notes", "type": "text", "width": 26}
+          {
+            "name": "Task",
+            "type": "text",
+            "width": 34
+          },
+          {
+            "name": "Day",
+            "type": "dropdown",
+            "options": [
+              "Sunday",
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday"
+            ]
+          },
+          {
+            "name": "Time Needed (min)",
+            "type": "number",
+            "total": "sum"
+          },
+          {
+            "name": "Containers",
+            "type": "number",
+            "total": "sum"
+          },
+          {
+            "name": "Status",
+            "type": "dropdown",
+            "options": [
+              "To Do",
+              "Prepped",
+              "Eaten"
+            ],
+            "option_colors": {
+              "To Do": "warning",
+              "Prepped": "success",
+              "Eaten": "info"
+            }
+          },
+          {
+            "name": "Notes",
+            "type": "text",
+            "width": 26
+          }
         ],
         "rows": [
-          ["Cook 3 cups brown rice + 2 cups quinoa", "Sunday", 30, 2, "Prepped", "Rice cooker"],
-          ["Grill 1.5 kg chicken breast, slice", "Sunday", 35, 4, "Prepped", "Season half with taco spice"],
-          ["Roast sweet potato, peppers, broccoli", "Sunday", 40, 3, "Prepped", "One sheet pan each"],
-          ["Assemble 4 overnight oats jars", "Sunday", 10, 4, "Prepped", ""],
-          ["Bake 12 veggie egg muffins", "Sunday", 30, 2, "To Do", "Freeze 6"],
-          ["Make lentil curry, portion x6", "Sunday", 45, 6, "To Do", "Freeze 2"],
-          ["Pasta salad, portion x5", "Sunday", 20, 5, "To Do", "Dress before eating"],
-          ["Chop snack veg + portion hummus", "Sunday", 15, 5, "To Do", ""],
-          ["Smoothie freezer packs x5", "Sunday", 10, 5, "To Do", ""],
-          ["Label containers with dates", "Sunday", 5, 0, "To Do", "Masking tape + marker"]
+          [
+            "Cook 3 cups brown rice + 2 cups quinoa",
+            "Sunday",
+            30,
+            2,
+            "Prepped",
+            "Rice cooker"
+          ],
+          [
+            "Grill 1.5 kg chicken breast, slice",
+            "Sunday",
+            35,
+            4,
+            "Prepped",
+            "Season half with taco spice"
+          ],
+          [
+            "Roast sweet potato, peppers, broccoli",
+            "Sunday",
+            40,
+            3,
+            "Prepped",
+            "One sheet pan each"
+          ],
+          [
+            "Assemble 4 overnight oats jars",
+            "Sunday",
+            10,
+            4,
+            "Prepped",
+            ""
+          ],
+          [
+            "Bake 12 veggie egg muffins",
+            "Sunday",
+            30,
+            2,
+            "To Do",
+            "Freeze 6"
+          ],
+          [
+            "Make lentil curry, portion x6",
+            "Sunday",
+            45,
+            6,
+            "To Do",
+            "Freeze 2"
+          ],
+          [
+            "Pasta salad, portion x5",
+            "Sunday",
+            20,
+            5,
+            "To Do",
+            "Dress before eating"
+          ],
+          [
+            "Chop snack veg + portion hummus",
+            "Sunday",
+            15,
+            5,
+            "To Do",
+            ""
+          ],
+          [
+            "Smoothie freezer packs x5",
+            "Sunday",
+            10,
+            5,
+            "To Do",
+            ""
+          ],
+          [
+            "Label containers with dates",
+            "Sunday",
+            5,
+            0,
+            "To Do",
+            "Masking tape + marker"
+          ]
         ],
-        "blank_rows": 10
+        "blank_rows": 10,
+        "how_to": "Order tasks by oven and stove time so nothing waits. Mark Prepped when it is portioned and labelled."
       }
     ],
     "dashboard": {
       "kpis": [
-        {"label": "Weekly Calories", "sheet": "Weekly Meal Plan", "column": "Calories", "agg": "sum", "format": "number"},
-        {"label": "Avg Daily Calories", "sheet": "Weekly Meal Plan", "column": "Calories", "agg": "avg", "format": "number"},
-        {"label": "Grocery Budget", "sheet": "Grocery List", "column": "Est. Cost", "agg": "sum", "format": "currency"},
-        {"label": "Total Prep Time (min)", "sheet": "Prep Schedule", "column": "Time Needed (min)", "agg": "sum", "format": "number"}
+        {
+          "label": "Weekly Calories",
+          "sheet": "Weekly Meal Plan",
+          "column": "Calories",
+          "agg": "sum",
+          "format": "number",
+          "explain": "All calories planned for the week. Divide by your daily target times seven to see if the week fits your goal."
+        },
+        {
+          "label": "Avg Daily Calories",
+          "sheet": "Weekly Meal Plan",
+          "column": "Calories",
+          "agg": "avg",
+          "format": "number",
+          "explain": "Weekly calories divided by seven. Compare with your daily target (many adults aim for 1,800-2,400)."
+        },
+        {
+          "label": "Grocery Budget",
+          "sheet": "Grocery List",
+          "column": "Est. Cost",
+          "agg": "sum",
+          "format": "currency",
+          "explain": "Expected spend on this week's grocery list. Track it against last week to see what prepping saves."
+        },
+        {
+          "label": "Total Prep Time (min)",
+          "sheet": "Prep Schedule",
+          "column": "Time Needed (min)",
+          "agg": "sum",
+          "format": "number",
+          "explain": "Minutes of prep-day work. Most people fit a full week into 2-3 hours."
+        }
       ],
       "charts": [
-        {"type": "bar", "title": "Calories per Day", "sheet": "Weekly Meal Plan", "category_col": "Day", "value_cols": ["Calories"]},
-        {"type": "bar", "title": "Protein per Serving by Recipe", "sheet": "Recipe Library", "category_col": "Recipe", "value_cols": ["Protein (g)"]}
+        {
+          "type": "bar",
+          "title": "Calories per Day",
+          "sheet": "Weekly Meal Plan",
+          "category_col": "Day",
+          "value_cols": [
+            "Calories"
+          ]
+        },
+        {
+          "type": "bar",
+          "title": "Protein per Serving by Recipe",
+          "sheet": "Recipe Library",
+          "category_col": "Recipe",
+          "value_cols": [
+            "Protein (g)"
+          ]
+        }
+      ],
+      "metrics": [
+        {
+          "label": "Cost per Day",
+          "formula": "={Grocery Budget}/7",
+          "format": "currency",
+          "explain": "Grocery budget spread over the week. Compare with what one takeout meal costs you."
+        },
+        {
+          "label": "Avg Protein / Serving",
+          "formula": "=IF(COUNTA({Recipe Library!Recipe})=0,0,AVERAGE({Recipe Library!Protein (g)}))",
+          "format": "number",
+          "explain": "Average protein across your recipe library. Aim for 25 g or more per main meal."
+        },
+        {
+          "label": "Items Left to Buy",
+          "formula": "=COUNTIF({Grocery List!Purchased},\"No\")",
+          "format": "number",
+          "explain": "Grocery rows still marked No. Zero means you are ready for prep day."
+        },
+        {
+          "label": "Prep Tasks Remaining",
+          "formula": "=COUNTIF({Prep Schedule!Status},\"To Do\")",
+          "format": "number",
+          "explain": "Tasks not yet prepped. The time still needed shows in the insights below."
+        }
+      ],
+      "insights": [
+        "=\"Highest-calorie day: \"&INDEX({Weekly Meal Plan!Day},MATCH(MAX({Weekly Meal Plan!Calories}),{Weekly Meal Plan!Calories},0))&\" (\"&TEXT(MAX({Weekly Meal Plan!Calories}),\"#,##0\")&\" kcal); lightest: \"&INDEX({Weekly Meal Plan!Day},MATCH(MIN({Weekly Meal Plan!Calories}),{Weekly Meal Plan!Calories},0))&\".\"",
+        "=\"Best protein recipe: \"&INDEX({Recipe Library!Recipe},MATCH(MAX({Recipe Library!Protein (g)}),{Recipe Library!Protein (g)},0))&\" with \"&TEXT(MAX({Recipe Library!Protein (g)}),\"0\")&\" g per serving.\"",
+        "=\"Cheapest recipe: \"&INDEX({Recipe Library!Recipe},MATCH(MIN({Recipe Library!Cost / Serving}),{Recipe Library!Cost / Serving},0))&\" at \"&TEXT(MIN({Recipe Library!Cost / Serving}),\"$0.00\")&\" per serving.\"",
+        "=\"Prep still to do: \"&COUNTIF({Prep Schedule!Status},\"To Do\")&\" tasks, about \"&TEXT(SUMIF({Prep Schedule!Status},\"To Do\",{Prep Schedule!Time Needed (min)}),\"0\")&\" minutes.\"",
+        "=\"Grocery spend bought so far: \"&TEXT(SUMIF({Grocery List!Purchased},\"Yes\",{Grocery List!Est. Cost}),\"$#,##0.00\")&\" of \"&TEXT({Grocery Budget},\"$#,##0.00\")&\".\""
       ]
     }
   },
   "pdf": {
     "title": "Weekly Meal Prep Planner",
     "pages": [
-      {"type": "cover"},
-      {"type": "weekly_grid", "title": "Weekly Meal Plan", "subtitle": "Week of ____________", "columns": ["Breakfast", "Lunch", "Dinner", "Snacks"]},
-      {"type": "checklist", "title": "Grocery List", "subtitle": "Grouped by store section so you only walk the aisles once", "sections": {
-        "Produce": ["", "", "", "", "", ""],
-        "Protein": ["", "", "", "", ""],
-        "Dairy & Eggs": ["", "", "", ""],
-        "Grains & Bread": ["", "", "", ""],
-        "Pantry": ["", "", "", "", ""],
-        "Frozen": ["", "", ""]
-      }, "columns": 2},
-      {"type": "table", "title": "Prep Day Schedule", "subtitle": "Order tasks by oven and stove time so nothing waits", "columns": ["Task", "Time", "Containers", "Done"], "col_widths": [2.8, 0.8, 1, 0.6], "rows": 18},
-      {"type": "habit_tracker", "title": "Healthy Habits Tracker", "subtitle": "One square per day of the month", "habits": ["Ate prepped meals", "8 glasses of water", "5 servings of veg", "No takeout", "Protein at every meal"]},
-      {"type": "boxes", "title": "Recipe Card", "boxes": ["Recipe name  |  Servings:        Prep time:", "Ingredients", "Instructions", "Notes & substitutions"], "box_height": 42},
-      {"type": "notes", "title": "Notes & Ideas"}
+      {
+        "type": "cover"
+      },
+      {
+        "type": "guide",
+        "title": "How to Use This Planner",
+        "items": [
+          {
+            "heading": "Plan backwards from prep day",
+            "text": "Pick 3-4 recipes that share ingredients, write the week on the meal grid, then build the grocery list from the recipes. Shopping once and cooking once is where the time and money savings come from."
+          },
+          {
+            "heading": "Calories and protein",
+            "text": "Use the daily totals as a guide, not a rule. A common target is 25-40 g of protein per main meal; if a day comes out low, swap the snack for Greek yogurt or a protein smoothie."
+          },
+          {
+            "heading": "Prep day order",
+            "text": "Start the longest hands-off item first (rice, roasted vegetables, slow-cooker chili), then grill proteins, then assemble cold items last. Label every container with the day it should be eaten."
+          },
+          {
+            "heading": "Habit tracker",
+            "text": "Tick a box for every day you ate what you prepped. Three weeks of mostly ticked boxes is usually the point where takeout stops being the default."
+          }
+        ]
+      },
+      {
+        "type": "weekly_grid",
+        "title": "Weekly Meal Plan",
+        "subtitle": "Week of ____________",
+        "columns": [
+          "Breakfast",
+          "Lunch",
+          "Dinner",
+          "Snacks"
+        ]
+      },
+      {
+        "type": "checklist",
+        "title": "Grocery List",
+        "subtitle": "Grouped by store section so you only walk the aisles once",
+        "sections": {
+          "Produce": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "Protein": [
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "Dairy & Eggs": [
+            "",
+            "",
+            "",
+            ""
+          ],
+          "Grains & Bread": [
+            "",
+            "",
+            "",
+            ""
+          ],
+          "Pantry": [
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "Frozen": [
+            "",
+            "",
+            ""
+          ]
+        },
+        "columns": 2
+      },
+      {
+        "type": "table",
+        "title": "Prep Day Schedule",
+        "subtitle": "Order tasks by oven and stove time so nothing waits",
+        "columns": [
+          "Task",
+          "Time",
+          "Containers",
+          "Done"
+        ],
+        "col_widths": [
+          2.8,
+          0.8,
+          1,
+          0.6
+        ],
+        "rows": 18
+      },
+      {
+        "type": "habit_tracker",
+        "title": "Healthy Habits Tracker",
+        "subtitle": "One square per day of the month",
+        "habits": [
+          "Ate prepped meals",
+          "8 glasses of water",
+          "5 servings of veg",
+          "No takeout",
+          "Protein at every meal"
+        ]
+      },
+      {
+        "type": "boxes",
+        "title": "Recipe Card",
+        "boxes": [
+          "Recipe name  |  Servings:        Prep time:",
+          "Ingredients",
+          "Instructions",
+          "Notes & substitutions"
+        ],
+        "box_height": 42
+      },
+      {
+        "type": "notes",
+        "title": "Notes & Ideas"
+      }
     ]
   },
   "listing": {
     "title": "Meal Prep Planner Excel Spreadsheet, Weekly Meal Planner Template, Grocery List, Recipe Tracker, Google Sheets Compatible, Printable PDF Planner",
     "description": "Plan a week of meals in minutes and prep it in one afternoon. The Excel spreadsheet (Google Sheets compatible) includes a weekly meal plan with calorie and prep-time totals, a recipe library with nutrition and cost per serving, a grocery list grouped by store section with a running budget, a prep-day schedule with status tracking, and a dashboard that sums up your week. The printable PDF planner adds a weekly meal grid, grocery checklist, prep schedule, healthy habits tracker and recipe cards for the fridge door.",
-    "tags": ["meal prep planner", "meal planner", "weekly meal plan", "grocery list template", "meal prep spreadsheet", "recipe tracker", "meal planning excel", "google sheets meal plan", "healthy eating planner", "meal prep template", "printable meal planner", "food planner", "digital download"]
+    "tags": [
+      "meal prep planner",
+      "meal planner",
+      "weekly meal plan",
+      "grocery list template",
+      "meal prep spreadsheet",
+      "recipe tracker",
+      "meal planning excel",
+      "google sheets meal plan",
+      "healthy eating planner",
+      "meal prep template",
+      "printable meal planner",
+      "food planner",
+      "digital download"
+    ]
   }
 }

@@ -56,5 +56,9 @@
     "tags_per_product": 5
   },
   "output_dir": "./products",
-  "log_file": "./template_machine.log"
+  "log_file": "./template_machine.log",
+  "qa": {
+    "strict": true,
+    "max_claude_attempts": 2
+  }
 }

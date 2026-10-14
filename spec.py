@@ -7,8 +7,10 @@ Claude bu spec'i üretir; excel_builder / pdf_builder sadece çizer.
 category_packs/*.json dosyaları elle hazırlanmış, satılabilir kalitede
 örneklerdir: Claude'a şablon olarak verilir, API yoksa doğrudan kullanılır.
 """
-import json, re
+import json, re, logging
 from pathlib import Path
+
+logger = logging.getLogger("template-machine.spec")
 
 PACK_DIR = Path(__file__).parent / "category_packs"
 
@@ -24,7 +26,8 @@ TOTAL_AGGS = {"sum", "avg", "count"}
 CONDITIONALS = {"negative_red", "data_bar", "progress_bar"}
 KPI_AGGS = {"sum", "avg", "count", "max", "min", "sumif"}
 CHART_TYPES = {"bar", "pie", "line"}
-PDF_PAGE_TYPES = {"cover", "table", "checklist", "weekly_grid", "habit_tracker", "boxes", "notes"}
+PDF_PAGE_TYPES = {"cover", "guide", "table", "checklist", "weekly_grid", "habit_tracker", "boxes", "notes"}
+METRIC_FORMATS = {"currency", "number", "percent"}
 OPTION_COLOR_KEYS = {"success", "warning", "danger", "info"}
 RESERVED_SHEET_NAMES = {"dashboard", "start here"}
 DROPDOWN_FORMULA_LIMIT = 255   # Excel: liste doğrulaması 255 karakteri aşarsa dosya "onarım" hatası verir
@@ -89,6 +92,7 @@ def validate_spec(spec):
         seen_names.add(name.lower())
         sh["name"] = name
         sh.setdefault("purpose", "")
+        sh["how_to"] = str(sh.get("how_to") or "")
         sh.setdefault("blank_rows", 10)
         cols = _req(sh, "columns", where)
         if not cols:
@@ -103,6 +107,7 @@ def validate_spec(spec):
             if not cname:
                 raise SpecError(f"{cwhere}: boş kolon adı")
             col["name"] = cname
+            col["help"] = str(col.get("help") or "")
             col_names.append(cname)
             ctype = col.get("type", "text")
             if ctype not in COLUMN_TYPES:
@@ -179,7 +184,40 @@ def validate_spec(spec):
             if k["agg"] == "sumif" and k.get("where_column") not in sheet_cols[k["sheet"]]:
                 continue
             kpis.append(k)
+    for k in kpis:
+        k["explain"] = str(k.get("explain") or "")
     dash["kpis"] = kpis[:4]
+
+    # Türetilmiş metrikler ve içgörü cümleleri: {KPI Label} veya {Sheet!Column} yer tutucuları
+    labels = [k["label"] for k in dash["kpis"]]
+    metrics = []
+    for m in dash.get("metrics", []):
+        if not isinstance(m, dict) or not m.get("label") or not str(m.get("formula", "")).startswith("="):
+            continue
+        bad = _bad_placeholders(m["formula"], labels, sheet_cols)
+        if bad:
+            logger.warning(f"metrik '{m['label']}' atlandı, çözülemeyen başvuru: {bad}")
+            continue
+        m["format"] = m.get("format") if m.get("format") in METRIC_FORMATS else "number"
+        m["explain"] = str(m.get("explain") or "")
+        metrics.append(m)
+        labels.append(m["label"])
+    dash["metrics"] = metrics[:4]
+    insights = []
+    for ins in dash.get("insights", []):
+        if isinstance(ins, dict):
+            ins = ins.get("formula") or ins.get("text") or ""
+        ins = str(ins).strip()
+        if not ins:
+            continue
+        if ins.startswith("="):
+            bad = _bad_placeholders(ins, labels, sheet_cols)
+            if bad:
+                logger.warning(f"insight atlandı, çözülemeyen başvuru: {bad}")
+                continue
+        insights.append(ins)
+    dash["insights"] = insights[:5]
+
     charts = []
     for ch in dash.get("charts", []):
         if ch.get("sheet") in sheet_cols and _valid_chart(ch, sheet_cols[ch["sheet"]]):
@@ -189,6 +227,11 @@ def validate_spec(spec):
     pdf = spec.setdefault("pdf", {})
     pdf.setdefault("title", spec["product_name"])
     pages = [p for p in pdf.get("pages", []) if isinstance(p, dict) and p.get("type") in PDF_PAGE_TYPES]
+    for p in pages:
+        if p["type"] == "guide":
+            p["items"] = [{"heading": str(i.get("heading", "")), "text": str(i.get("text", ""))}
+                          for i in p.get("items", []) if isinstance(i, dict) and i.get("text")][:8]
+    pages = [p for p in pages if p["type"] != "guide" or p["items"]]
     if not pages or pages[0].get("type") != "cover":
         pages.insert(0, {"type": "cover"})
     if pages[-1].get("type") != "notes":
@@ -226,6 +269,20 @@ def _coerce_value(col, value):
     return str(value)
 
 
+def _bad_placeholders(formula, labels, sheet_cols):
+    """Dashboard formülündeki {X} başvurularından çözülemeyenleri döndürür."""
+    bad = []
+    for ref in re.findall(r"\{([^}]+)\}", formula):
+        if ref in labels:
+            continue
+        if "!" in ref:
+            sheet, _, col = ref.partition("!")
+            if sheet in sheet_cols and col in sheet_cols[sheet]:
+                continue
+        bad.append(ref)
+    return bad
+
+
 def _valid_chart(chart, col_names):
     if chart.get("type") not in CHART_TYPES:
         return False
@@ -256,8 +313,10 @@ JSON SPEC FORMAT (follow exactly; the example below is a complete, valid spec):
       {
         "name": "max 31 chars, no / \\\\ ? * [ ] :",
         "purpose": "one sentence",
+        "how_to": "one sentence telling the user how to work with this tab",
         "columns": [
           {"name": "Column", "type": "text|currency|number|percent|date|dropdown",
+           "help": "one sentence shown as a header tooltip explaining what to enter",
            "options": ["only for dropdown"],
            "option_colors": {"Option": "success|warning|danger|info"},
            "total": "sum|avg|count",                 // optional, adds a TOTAL row
@@ -271,7 +330,12 @@ JSON SPEC FORMAT (follow exactly; the example below is a complete, valid spec):
       }
     ],
     "dashboard": {
-      "kpis": [{"label": "...", "sheet": "Sheet Name", "column": "Column", "agg": "sum|avg|count|max|min|sumif", "where_column": "Column", "equals": "Value", "format": "currency|number|percent"}],
+      "kpis": [{"label": "...", "sheet": "Sheet Name", "column": "Column", "agg": "sum|avg|count|max|min|sumif", "where_column": "Column", "equals": "Value", "format": "currency|number|percent",
+                "explain": "one sentence: what this number means and a sensible target"}],
+      "metrics": [{"label": "Savings Rate", "formula": "=IF({Total Income}=0,0,({Total Income}-{Total Spent})/{Total Income})", "format": "percent",
+                   "explain": "..."}],
+      "insights": ["=\"Biggest overspend: \"&INDEX({Sheet Name!Category},MATCH(MIN({Sheet Name!Difference}),{Sheet Name!Difference},0))",
+                   "=\"Guests still pending: \"&COUNTIF({Guest List!RSVP},\"Pending\")"],
       "charts": [{"type": "bar|pie|line", "title": "...", "sheet": "Sheet Name", "category_col": "Column", "value_cols": ["Column"]}]
     }
   },
@@ -279,6 +343,7 @@ JSON SPEC FORMAT (follow exactly; the example below is a complete, valid spec):
     "title": "...",
     "pages": [
       {"type": "cover"},
+      {"type": "guide", "title": "How to Use This Planner", "items": [{"heading": "...", "text": "2-3 sentences"}]},
       {"type": "table", "title": "...", "subtitle": "...", "columns": ["A", "B"], "col_widths": [2, 1], "prefill": ["optional first-column labels"], "rows": 20, "total_row": true},
       {"type": "checklist", "title": "...", "sections": {"Section": ["item", "item"]}, "columns": 1},
       {"type": "weekly_grid", "title": "...", "columns": ["Breakfast", "Lunch", "Dinner"]},
@@ -294,6 +359,9 @@ RULES:
 - Dates are ISO strings "YYYY-MM-DD". Money and numbers are plain numbers, not strings.
 - 4 sheets, 10-18 realistic sample rows each (7 for a weekly plan). Sample data must be specific to the keyword's domain: real-sounding names, items, amounts and dates. Never generic placeholders like "Item A".
 - Every sheet needs at least one numeric column; at least two sheets need a "total" column and a dropdown column with option_colors.
-- Dashboard: exactly 4 KPIs and 2 charts, all pointing at existing sheets/columns.
+- Dashboard: exactly 4 KPIs (each with "explain"), 4 derived "metrics" and 3-5 "insights", 2 charts. In metric/insight formulas reference
+  KPI or metric labels as {Label} and sheet columns as {Sheet Name!Column}; use only INDEX, MATCH, MIN, MAX, SUM, SUMIF, COUNTIF, COUNTA,
+  AVERAGE, IF, TEXT and & so the formulas work in Excel, Google Sheets and LibreOffice. Insights must read as full sentences with the number inside.
+- Every sheet has "how_to"; every column has "help". Explanations are written for a non-expert: what the number means, why it matters, what a good value is.
 - PDF: 6-8 pages using the page types above, each one useful on paper for this specific keyword (prefill table labels where sensible).
 """

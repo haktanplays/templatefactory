@@ -32,24 +32,28 @@
               "Variable Expense",
               "Savings"
             ],
-            "width": 18
+            "width": 18,
+            "help": "Pick Income for money coming in, Fixed for bills that do not change, Variable for spending you control, Savings for transfers to savings."
           },
           {
             "name": "Budgeted",
             "type": "currency",
-            "total": "sum"
+            "total": "sum",
+            "help": "The amount you planned for this month."
           },
           {
             "name": "Actual",
             "type": "currency",
-            "total": "sum"
+            "total": "sum",
+            "help": "What really came in or went out. Update weekly."
           },
           {
             "name": "Difference",
             "type": "currency",
             "formula": "=IF({Type}=\"Income\",{Actual}-{Budgeted},{Budgeted}-{Actual})",
             "total": "sum",
-            "conditional": "negative_red"
+            "conditional": "negative_red",
+            "help": "Calculated: for expenses Budgeted minus Actual (negative = overspent); for income Actual minus Budgeted (positive = earned more)."
           },
           {
             "name": "Notes",
@@ -166,7 +170,8 @@
             "Budgeted",
             "Actual"
           ]
-        }
+        },
+        "how_to": "Enter what you plan to earn/spend in Budgeted at the start of the month, then fill Actual as the month goes. Difference turns red where you overspent."
       },
       {
         "name": "Expense Log",
@@ -196,13 +201,15 @@
               "Shopping",
               "Other"
             ],
-            "width": 18
+            "width": 18,
+            "help": "Use the same categories as the Monthly Budget tab so totals line up."
           },
           {
             "name": "Amount",
             "type": "currency",
             "total": "sum",
-            "conditional": "data_bar"
+            "conditional": "data_bar",
+            "help": "Amount paid, including tax and tips."
           },
           {
             "name": "Payment Method",
@@ -343,7 +350,8 @@
             "On sale"
           ]
         ],
-        "blank_rows": 15
+        "blank_rows": 15,
+        "how_to": "Add one row per purchase. Keep receipts in the same order so you can reconcile with your bank statement."
       },
       {
         "name": "Savings Goals",
@@ -374,7 +382,8 @@
             "name": "Progress",
             "type": "percent",
             "formula": "=IF({Target Amount}=0,0,{Saved So Far}/{Target Amount})",
-            "conditional": "progress_bar"
+            "conditional": "progress_bar",
+            "help": "Calculated: Saved So Far divided by Target Amount."
           },
           {
             "name": "Target Date",
@@ -392,7 +401,8 @@
               "On Track": "success",
               "Behind": "danger",
               "Completed": "info"
-            }
+            },
+            "help": "On Track if you will hit the target by the date at your current pace."
           }
         ],
         "rows": [
@@ -439,7 +449,8 @@
             "Behind"
           ]
         ],
-        "blank_rows": 6
+        "blank_rows": 6,
+        "how_to": "One row per goal. Update Saved So Far each payday; Progress and Remaining update automatically."
       },
       {
         "name": "Debt Tracker",
@@ -471,16 +482,19 @@
           },
           {
             "name": "Interest Rate",
-            "type": "percent"
+            "type": "percent",
+            "help": "Yearly rate as a percentage, e.g. 19.9%."
           },
           {
             "name": "Min Payment",
             "type": "currency",
-            "total": "sum"
+            "total": "sum",
+            "help": "The smallest payment allowed each month."
           },
           {
             "name": "Due Day",
-            "type": "number"
+            "type": "number",
+            "help": "Day of the month the payment is due."
           },
           {
             "name": "Status",
@@ -544,7 +558,8 @@
             "Late"
           ]
         ],
-        "blank_rows": 6
+        "blank_rows": 6,
+        "how_to": "List every balance you owe. Pay minimums on all, then put extra money on the highest interest rate first (avalanche method)."
       }
     ],
     "dashboard": {
@@ -556,28 +571,32 @@
           "agg": "sumif",
           "where_column": "Type",
           "equals": "Income",
-          "format": "currency"
+          "format": "currency",
+          "explain": "Money that came in this month (Actual column, Income rows). Everything else is measured against this."
         },
         {
           "label": "Total Spent",
           "sheet": "Expense Log",
           "column": "Amount",
           "agg": "sum",
-          "format": "currency"
+          "format": "currency",
+          "explain": "Everything logged on the Expense Log tab. Compare with Total Income: spending should stay below it."
         },
         {
           "label": "Total Saved",
           "sheet": "Savings Goals",
           "column": "Saved So Far",
           "agg": "sum",
-          "format": "currency"
+          "format": "currency",
+          "explain": "Total put aside across all savings goals. Watch it grow month over month."
         },
         {
           "label": "Total Debt",
           "sheet": "Debt Tracker",
           "column": "Balance",
           "agg": "sum",
-          "format": "currency"
+          "format": "currency",
+          "explain": "All balances on the Debt Tracker. The goal is to see this number fall every month."
         }
       ],
       "charts": [
@@ -600,6 +619,39 @@
             "Saved So Far"
           ]
         }
+      ],
+      "metrics": [
+        {
+          "label": "Savings Rate",
+          "formula": "=IF({Total Income}=0,0,SUMIF({Monthly Budget!Type},\"Savings\",{Monthly Budget!Actual})/{Total Income})",
+          "format": "percent",
+          "explain": "Money moved into savings rows divided by income. 20% or more is the common target; 10% is a solid start."
+        },
+        {
+          "label": "Budget Used",
+          "formula": "=IF(SUMIF({Monthly Budget!Type},\"<>Income\",{Monthly Budget!Budgeted})=0,0,SUMIF({Monthly Budget!Type},\"<>Income\",{Monthly Budget!Actual})/SUMIF({Monthly Budget!Type},\"<>Income\",{Monthly Budget!Budgeted}))",
+          "format": "percent",
+          "explain": "Actual spending as a share of planned spending. Over 100% means the month cost more than you planned."
+        },
+        {
+          "label": "Monthly Debt Payments",
+          "formula": "=SUM({Debt Tracker!Min Payment})",
+          "format": "currency",
+          "explain": "Minimum payments due each month. Keep this under 36% of income (the lender's usual rule of thumb)."
+        },
+        {
+          "label": "Average Transaction",
+          "formula": "=IF(COUNTA({Expense Log!Description})=0,0,AVERAGE({Expense Log!Amount}))",
+          "format": "currency",
+          "explain": "Typical purchase size. A rising number usually means fewer, bigger spends; falling means many small ones to watch."
+        }
+      ],
+      "insights": [
+        "=IF(MIN({Monthly Budget!Difference})>=0,\"No category is over budget this month. Nice work!\",\"Biggest overspend: \"&INDEX({Monthly Budget!Category},MATCH(MIN({Monthly Budget!Difference}),{Monthly Budget!Difference},0))&\" (\"&TEXT(-MIN({Monthly Budget!Difference}),\"$#,##0\")&\" over plan).\")",
+        "=\"Largest single purchase: \"&INDEX({Expense Log!Description},MATCH(MAX({Expense Log!Amount}),{Expense Log!Amount},0))&\" at \"&TEXT(MAX({Expense Log!Amount}),\"$#,##0.00\")&\".\"",
+        "=IF({Savings Rate}>=0.2,\"You are saving \"&TEXT({Savings Rate},\"0%\")&\" of income, above the 20% guideline.\",\"You are saving \"&TEXT({Savings Rate},\"0%\")&\" of income. The common target is 20%: trim the biggest overspend category first.\")",
+        "=\"Savings goals: \"&COUNTIF({Savings Goals!Status},\"Completed\")&\" completed, \"&COUNTIF({Savings Goals!Status},\"Behind\")&\" behind schedule, \"&COUNTIF({Savings Goals!Status},\"On Track\")&\" on track.\"",
+        "=\"Highest interest debt: \"&INDEX({Debt Tracker!Creditor},MATCH(MAX({Debt Tracker!Interest Rate}),{Debt Tracker!Interest Rate},0))&\" at \"&TEXT(MAX({Debt Tracker!Interest Rate}),\"0.0%\")&\". Extra payments go furthest here.\""
       ]
     }
   },
@@ -608,6 +660,28 @@
     "pages": [
       {
         "type": "cover"
+      },
+      {
+        "type": "guide",
+        "title": "How to Read Your Numbers",
+        "items": [
+          {
+            "heading": "Budget vs actual",
+            "text": "Budgeted is the plan, Actual is reality. The Difference column shows where the month drifted. One or two red categories are normal; the same category red three months in a row means the budget, not the spending, needs to change."
+          },
+          {
+            "heading": "Savings rate",
+            "text": "Income minus spending, divided by income. 20% is the classic target (the 50/30/20 rule: 50% needs, 30% wants, 20% savings). If you are below 10%, start by automating a fixed transfer on payday."
+          },
+          {
+            "heading": "Debt payoff order",
+            "text": "List every debt with its interest rate. Pay the minimum on all of them, then put every spare dollar on the highest rate (avalanche). If motivation matters more than math, clear the smallest balance first (snowball)."
+          },
+          {
+            "heading": "Weekly five-minute review",
+            "text": "Log receipts, glance at the Difference column, move leftover cash to a goal. Small, frequent check-ins beat a painful end-of-month reconciliation."
+          }
+        ]
       },
       {
         "type": "table",
